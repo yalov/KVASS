@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "USKAM", "USKAM\USKAM.csproj", "{29393587-D98B-4C17-8BD1-829636B6B6FC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{724F861A-B3AC-4C59-B6F6-969AD40EA95C}"
+	ProjectSection(SolutionItems) = preProject
+		buildDeploy.bat = buildDeploy.bat
+		buildRelease.bat = buildRelease.bat
+		ChangeLog.txt = ChangeLog.txt
+		README.md = README.md
+		GameData\USKAM\SettingRegex.cfg = GameData\USKAM\SettingRegex.cfg
+		USKAM.version = USKAM.version
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Localization", "Localization", "{E9E527A7-4F6B-4CFF-B1CE-58B67B237048}"
+	ProjectSection(SolutionItems) = preProject
+		GameData\USKAM\Localization\en-us.cfg = GameData\USKAM\Localization\en-us.cfg
+		GameData\USKAM\Localization\ru.cfg = GameData\USKAM\Localization\ru.cfg
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{29393587-D98B-4C17-8BD1-829636B6B6FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29393587-D98B-4C17-8BD1-829636B6B6FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29393587-D98B-4C17-8BD1-829636B6B6FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29393587-D98B-4C17-8BD1-829636B6B6FC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {65BD29C1-18C0-4C15-831A-B06B8BCBB196}
+	EndGlobalSection
+EndGlobal
