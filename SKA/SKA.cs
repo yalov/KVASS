@@ -136,34 +136,21 @@ namespace SKA
         {
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
             {
-                double cost = 0;
-                if (settingsSKA.CalcMode == Localizer.Format("#SKA_VESSEL"))
-                    cost = 0.01 * settingsSKA.Career_Vessel * EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+                double cost = 0.01 * settingsSKA.Career_Vessel * EditorLogic.fetch.ship.GetShipCosts(out _, out _);
 
-                else if (settingsSKA.CalcMode == Localizer.Format("#SKA_TOTAL")) 
-                    cost = 0.01 * settingsSKA.Career_Total * Funding.Instance.Funds;
-
-                else // if (settingsSKA.CalcMode == Localizer.Format("#SKA_CONST"))
-                    cost = settingsSKA.Career_Const;
-                
-                
-
+                if (settingsSKA.Career_Bureaucracy)
+                    cost += settingsSKA.Career_Const; 
+                    
                 Funding.Instance.AddFunds(-cost, TransactionReasons.VesselRollout);
             }
 
             else if (HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
             {
-                float science_points = 0.0f;
+                float science_points = settingsSKA.Science_Vessel * EditorLogic.fetch.ship.GetTotalMass() / 100;
 
-                if (settingsSKA.CalcMode == Localizer.Format("#SKA_VESSEL"))
-                    science_points = settingsSKA.Science_Vessel * EditorLogic.fetch.ship.GetTotalMass() / 100;
-
-                else if (settingsSKA.CalcMode == Localizer.Format("#SKA_TOTAL"))
-                    science_points = 0.01f * settingsSKA.Science_Total * ResearchAndDevelopment.Instance.Science;
-
-                else //if (settingsSKA.CalcMode == Localizer.Format("#SKA_CONST"))
-                    science_points = settingsSKA.Science_Const;
-
+                if (settingsSKA.Science_Bureaucracy)
+                    science_points += settingsSKA.Science_Const;
+                
                 ResearchAndDevelopment.Instance.AddScience(-science_points, TransactionReasons.VesselRollout);
             }
         }
@@ -176,7 +163,6 @@ namespace SKA
             string aID = "";
             if (KACWrapper.APIReady)
             {
-                //Create a raw alarm 15 mins from now game time and get the id back
                 aID = KACWrapper.KAC.CreateAlarm(
                     KACWrapper.KACAPI.AlarmTypeEnum.Raw,
                     title,
@@ -188,8 +174,6 @@ namespace SKA
                 {
                     //if the alarm was made get the object so we can update it
                     KACWrapper.KACAPI.KACAlarm a = KACWrapper.KAC.Alarms.First(z => z.ID == aID);
-
-                    //Now update some of the other properties
                     
                     a.Notes = HighLogic.CurrentGame.flightState.universalTime.ToString("F0") +" "+ time.ToString("F0");
                     a.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.KillWarpOnly;
@@ -206,15 +190,11 @@ namespace SKA
             float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
             float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
             bool career = HighLogic.CurrentGame.Mode == Game.Modes.CAREER;
-
-            if (settingsSTA.TimeCalcMode == Localizer.Format("#STA_VESSEL"))
-                if (career)
-                    time = cost * settingsSTA.Career_Seconds;
-                else
-                    time = mass * settingsSTA.Science_Seconds;
-
-            else // Localizer.Format("#STA_CONST")
-                time = settingsSTA.Days * 60 * 60 * (GameSettings.KERBIN_TIME ? 6 : 24);
+            
+            if (career)
+                time = cost * settingsSTA.Career_Seconds;
+            else
+                time = mass * settingsSTA.Science_Seconds;
 
             if (settingsSTA.RepSpeedUp)
             {
@@ -233,6 +213,10 @@ namespace SKA
                 time /= teams ;
                 Log("Available Crew: {0}, Teams: {1}", availableKerbs, teams);
             }
+
+            // last one. No SpeedUp 
+            if (settingsSTA.Bureaucracy)
+                time += settingsSTA.BureaucracyTime * 60 * 60 * (GameSettings.KERBIN_TIME ? 6 : 24);
 
             return time;
         }
@@ -256,13 +240,13 @@ namespace SKA
 
         private static double Remaining(KACWrapper.KACAPI.KACAlarm a)
         {
-            // looks like a.Remaining doesn't work in the Editor :(
+            // looks like a.Remaining doesn't work in the VAB/SPH :(
 
             var list = a.Notes.Split(' ');
 
             if (list.Count() != 2)
             {
-                Log("Alarm Note has not correct values. Safe Launch");
+                Log("Alarm note hasn't correct values. Safe Launch");
                 return -1; // negative
             }
 
@@ -289,35 +273,14 @@ namespace SKA
                 }
                 else
                 {
-                    Log("LaunchRequest: Denied");
-
-                    Log("Back to KSC");
+                    Log("LaunchRequest: Denied, Back to KSC");
+                    
                     return false;
                 }
-
-
-                //foreach (var alarm in KACWrapper.KAC.Alarms)
-                //{
-                //    if (alarm.ID == id)
-                //    {
-                //        double rem = Remaining(alarm);
-                //        if (rem < 0.0)
-                //        {
-                //            Log("Loading vessel");
-                //            return true;
-                //        }
-                //        else
-                //        {
-                //            Log("LaunchRequest: Denied");
-
-                //            Log("Back to KSC");
-                //            return false;
-                //        }
-                //    }
-                //}
+                
             }
             Log("KAC is not found");
-            return true; // something wrong, need to load the vessel
+            return true; // SafeLoad
         }
 
 
