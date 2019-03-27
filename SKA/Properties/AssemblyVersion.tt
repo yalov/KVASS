@@ -5,7 +5,7 @@
 <#@ assembly name="System.Windows.Forms" #>
 <#
 
-	// Instructions
+	// Instructions by LGG
 	// 1.  Add a new Text Template to the project
 	// 2.  Copy this file into the new template
 	// 3.  Update the string: versionfile with the complete path to the .version file
@@ -28,7 +28,7 @@
 	int i2 = 0;
 	string s;
 
-	string versionfile =  @"C:\Users\User\Games\Development\USKAM\USKAM.version";
+	string versionfile =  @"C:\Users\User\Games\Development\SKA\SKA.version";
 	if (!File.Exists(versionfile))
 	{
 		Write("File: " + versionfile + " missing\n");		
