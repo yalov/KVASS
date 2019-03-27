@@ -190,10 +190,10 @@ namespace SKA
                     KACWrapper.KACAPI.KACAlarm a = KACWrapper.KAC.Alarms.First(z => z.ID == aID);
 
                     //Now update some of the other properties
-                    //a.Notes = Localizer.Format("#STA_Message_Alarm");
-                    a.Notes = HighLogic.CurrentGame.flightState.universalTime.ToString("F0") +" "+ time.ToString("F0");
-                    a.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.DoNothing;
                     
+                    a.Notes = HighLogic.CurrentGame.flightState.universalTime.ToString("F0") +" "+ time.ToString("F0");
+                    a.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.KillWarpOnly;
+                    a.AlarmMargin = 0;
                 }
             }
             return aID;

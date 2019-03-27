@@ -129,10 +129,10 @@ namespace SKA
         //public string STA_Science_Second = "";
 
         [GameParameters.CustomIntParameterUI("#STA_Career_Seconds", minValue = 1, maxValue = 180, stepSize = 1, gameMode = GameParameters.GameMode.CAREER)]
-        public int Career_Seconds = 2;
+        public int Career_Seconds = 6;
 
         [GameParameters.CustomIntParameterUI("#STA_Science_Seconds", minValue = 1, maxValue = 180, stepSize = 1, gameMode = GameParameters.GameMode.SCIENCE)]
-        public int Science_Seconds = 2;
+        public int Science_Seconds = 6;
 
 
         //[GameParameters.CustomStringParameterUI("#STA_Career_Minute",  lines = 1, gameMode = GameParameters.GameMode.CAREER)]
