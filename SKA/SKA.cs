@@ -7,6 +7,7 @@ using KSP.Localization;
 
 using SKA_KACWrapper;
 using static SKA.Logging;
+using KSP.UI.Screens;
 
 namespace SKA
 {
@@ -70,8 +71,8 @@ namespace SKA
             if (settingsSKA.Enable && regex.IsMatch(EditorLogic.fetch.ship.shipName))
             {
                 Log("Simulation Launch");
-                SimulationPurchase();
-                EditorLogic.fetch.launchVessel();
+                if (SimulationPurchase())
+                    EditorLogic.fetch.launchVessel();
             }
             else if (settingsSTA.Enable && KACWrapper.APIReady)
             {
@@ -132,29 +133,72 @@ namespace SKA
             return String.Join("|", RegExs);
         }
 
-        private static void SimulationPurchase()
+        private static bool SimulationPurchase()
         {
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
             {
-                double cost = 0.01 * settingsSKA.Career_Vessel * EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+                double shipCost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+                double simulCost = 0.01 * settingsSKA.Career_Vessel * shipCost;
 
                 if (settingsSKA.Career_Bureaucracy)
-                    cost += settingsSKA.Career_Const; 
-                    
-                Funding.Instance.AddFunds(-cost, TransactionReasons.VesselRollout);
+                    simulCost += settingsSKA.Career_Const;
+
+                
+                if (Funding.Instance.Funds >= shipCost + simulCost)
+                {
+                    Funding.Instance.AddFunds(-simulCost, TransactionReasons.VesselRollout);
+                    return true;
+                }
+                else
+                {
+                    string message = "Not Enough Funds To Simulate!\n"
+                    + String.Format("{0:F0} < {1:F0} + {2:F0}", Funding.Instance.Funds, shipCost, simulCost);
+
+                    var msg = new ScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(msg);
+                    return false;
+                }
+
+                //ShowDialog();
             }
 
-            else if (HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
+            else // if (HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
             {
                 float science_points = settingsSKA.Science_Vessel * EditorLogic.fetch.ship.GetTotalMass() / 100;
 
                 if (settingsSKA.Science_Bureaucracy)
                     science_points += settingsSKA.Science_Const;
-                
-                ResearchAndDevelopment.Instance.AddScience(-science_points, TransactionReasons.VesselRollout);
+
+                if (ResearchAndDevelopment .Instance.Science >= science_points )
+                {
+                    ResearchAndDevelopment.Instance.AddScience(-science_points, TransactionReasons.VesselRollout);
+                    return true;
+                }
+                else
+                {
+                    string message = "Not Enough Sci-points To Simulate!\n"
+                    + String.Format("{0:F1} < {1:F1}", ResearchAndDevelopment.Instance.Science, science_points);
+
+                    var msg = new ScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
+                    ScreenMessages.PostScreenMessage(msg);
+                    return false;
+                }
             }
+            
         }
 
+
+        private static void ShowDialog(string message = "You can't afford to launch this vessel.", 
+            string close_title = "Unable to Launch", float height = 100f)
+        {
+            PopupDialog.SpawnPopupDialog(
+                new MultiOptionDialog(
+                    "NotEnoughFunds", message, "Not Enough Funds!",
+                    HighLogic.UISkin,
+                    new Rect(0.5f, 0.5f, 300f, height),
+                    new DialogGUIButton(close_title, () => { }, true)
+                ), false, HighLogic.UISkin, true);
+        }
 
         private static string CreateNewAlarm(string title)
         {
@@ -196,7 +240,7 @@ namespace SKA
             else
                 time = mass * settingsSTA.Science_Seconds;
 
-            if (settingsSTA.RepSpeedUp)
+            if (settingsSTA.RepSpeedUp && career)
             {
                 int currRep = Math.Max((int)Reputation.CurrentRep, 0);
                 double lines = currRep / settingsSTA.RepToNextLevel +1;
