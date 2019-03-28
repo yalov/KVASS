@@ -117,7 +117,7 @@ namespace SKA
 
 
         [GameParameters.CustomParameterUI("#STA_Enable_KerbSpeedUp", toolTip = "#STA_Enable_KerbSpeedUp_Tooltip")]
-        public bool KerbSpeedUp = true;
+        public bool KerbSpeedUp = false;
 
         [GameParameters.CustomIntParameterUI("#STA_KerbToNextLevel", toolTip = "#STA_KerbToNextLevel_Tooltip",
             minValue = 3, maxValue = 20, stepSize = 1)]
