@@ -1,7 +1,7 @@
 """requirements: 
 Python3, pip install PyGithub, release_spacedock_utils.py
 Public domain license.
-author: flart, version: 5
+author: flart, version: 6
 https://github.com/yalov/SpeedUnitAnnex/blob/master/release.py
 Script loads release-arhive to github and spacedock
 you need to set values in the release.json
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     
     print("")
     print("You already push your changes to a remote repo, don't you?")
-    print("Create the tag, and publish a release with the asset?")
+    print("Create the tag, and publish a {}{} with the asset?".format("DRAFT " if DRAFT else "","PRERELEASE" if PRERELEASE else "RELEASE" ))
     if input("[y/N]: ") == 'y':
         publish_to_github(TOKEN, MODNAME, VERSION, LAST_CHANGE, DRAFT, PRERELEASE, ZIPFILE)
 
