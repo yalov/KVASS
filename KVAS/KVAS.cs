@@ -5,17 +5,17 @@ using System.Linq;
 using UnityEngine;
 using KSP.Localization;
 
-using SKA_KACWrapper;
-using static SKA.Logging;
+using KVAS_KACWrapper;
+using static KVAS.Logging;
 using KSP.UI.Screens;
 
-namespace SKA
+namespace KVAS
 {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
-    public class SKA : MonoBehaviour
+    public class KVAS : MonoBehaviour
     {
-        static SKASettings settingsSKA;
-        static STASettings settingsSTA;
+        static KVAS_SimSettings settingsSim;
+        static KVAS_PlanSettings settingsPlan;
         static Regex regex;
 
         public void Awake()
@@ -30,8 +30,8 @@ namespace SKA
 
         public void Start()
         {
-            settingsSKA = HighLogic.CurrentGame.Parameters.CustomParams<SKASettings>();
-            settingsSTA = HighLogic.CurrentGame.Parameters.CustomParams<STASettings>();
+            settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVAS_SimSettings>();
+            settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVAS_PlanSettings>();
 
             regex = new Regex(LoadRegExpPattern());
 
@@ -68,18 +68,18 @@ namespace SKA
         //Replace the default action
         public UnityEngine.Events.UnityAction OnLoadClick = new UnityEngine.Events.UnityAction(() => {
 
-            if (settingsSKA.Enable && regex.IsMatch(EditorLogic.fetch.ship.shipName))
+            if (settingsSim.Enable && regex.IsMatch(EditorLogic.fetch.ship.shipName))
             {
                 Log("Simulation Launch");
                 if (SimulationPurchase())
                     EditorLogic.fetch.launchVessel();
             }
-            else if (settingsSTA.Enable && KACWrapper.APIReady)
+            else if (settingsPlan.Enable && KACWrapper.APIReady)
             {
                 Log("Building");
 
                 //string ID;
-                string AlarmTitle = Localizer.Format("#STA_AlarmTitle", EditorLogic.fetch.ship.shipName);
+                string AlarmTitle = Localizer.Format("#KVAT_AlarmTitle", EditorLogic.fetch.ship.shipName);
 
                 if (IsAlarmFound(AlarmTitle, out string ID))
                 {
@@ -116,7 +116,7 @@ namespace SKA
         {
             string[] RegExs = { "^.?[Tt]est" };
 
-            ConfigNode[] configs = GameDatabase.Instance.GetConfigNodes("SKA");
+            ConfigNode[] configs = GameDatabase.Instance.GetConfigNodes("KVAS");
 
             if (configs != null)
             {
@@ -138,10 +138,10 @@ namespace SKA
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
             {
                 double shipCost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
-                double simulCost = 0.01 * settingsSKA.Career_Vessel * shipCost;
+                double simulCost = 0.01 * settingsSim.Career_Vessel * shipCost;
 
-                if (settingsSKA.Career_Bureaucracy)
-                    simulCost += settingsSKA.Career_Const;
+                if (settingsSim.Career_Bureaucracy)
+                    simulCost += settingsSim.Career_Const;
 
                 
                 if (Funding.Instance.Funds >= shipCost + simulCost)
@@ -164,10 +164,10 @@ namespace SKA
 
             else // if (HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
             {
-                float science_points = settingsSKA.Science_Vessel * EditorLogic.fetch.ship.GetTotalMass() / 100;
+                float science_points = settingsSim.Science_Vessel * EditorLogic.fetch.ship.GetTotalMass() / 100;
 
-                if (settingsSKA.Science_Bureaucracy)
-                    science_points += settingsSKA.Science_Const;
+                if (settingsSim.Science_Bureaucracy)
+                    science_points += settingsSim.Science_Const;
 
                 if (ResearchAndDevelopment .Instance.Science >= science_points )
                 {
@@ -236,31 +236,31 @@ namespace SKA
             bool career = HighLogic.CurrentGame.Mode == Game.Modes.CAREER;
             
             if (career)
-                time = cost * settingsSTA.Career_Seconds;
+                time = cost * settingsPlan.Career_Seconds;
             else
-                time = mass * settingsSTA.Science_Seconds;
+                time = mass * settingsPlan.Science_Seconds;
 
-            if (settingsSTA.RepSpeedUp && career)
+            if (settingsPlan.RepSpeedUp && career)
             {
                 int currRep = Math.Max((int)Reputation.CurrentRep, 0);
-                double lines = currRep / settingsSTA.RepToNextLevel +1;
+                double lines = currRep / settingsPlan.RepToNextLevel +1;
                 time /= lines;
                 Log("Reputation: {0}, ProdLines: {1}" , Reputation.CurrentRep, lines);
             }
 
-            if (settingsSTA.KerbSpeedUp)
+            if (settingsPlan.KerbSpeedUp)
             {
                 int availableKerbs = HighLogic.CurrentGame.CrewRoster.GetAvailableCrewCount();
 
-                int teams = availableKerbs / settingsSTA.KerbToNextLevel + 1;
+                int teams = availableKerbs / settingsPlan.KerbToNextLevel + 1;
 
                 time /= teams ;
                 Log("Available Crew: {0}, Teams: {1}", availableKerbs, teams);
             }
 
             // last one. No SpeedUp 
-            if (settingsSTA.Bureaucracy)
-                time += settingsSTA.BureaucracyTime * 60 * 60 * (GameSettings.KERBIN_TIME ? 6 : 24);
+            if (settingsPlan.Bureaucracy)
+                time += settingsPlan.BureaucracyTime * 60 * 60 * (GameSettings.KERBIN_TIME ? 6 : 24);
 
             return time;
         }

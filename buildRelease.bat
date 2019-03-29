@@ -16,7 +16,7 @@ REM )
 
 rem Set variables here
 
-set MODNAME=SKA
+set MODNAME=KVAS
 set LICENSE=%MODNAME%-License.txt
 set CHANGELOG=ChangeLog.md
 set VERSIONFILE=%MODNAME%.version

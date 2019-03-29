@@ -3,55 +3,55 @@ using System.Collections.Generic;
 using System.Reflection;
 using KSP.Localization;
 
-namespace SKA
+namespace KVAS
 {
     // http://forum.kerbalspaceprogram.com/index.php?/topic/147576-modders-notes-for-ksp-12/#comment-2754813
     // search for "Mod integration into Stock Settings
 
 
-    public class SKASettings : GameParameters.CustomParameterNode
+    public class KVAS_SimSettings : GameParameters.CustomParameterNode
     {
 
-        public override string Title { get { return Localizer.Format("#SKA_settings_title") ; } }
+        public override string Title { get { return Localizer.Format("#KVAS_sim_title") ; } }
         public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.CAREER| GameParameters.GameMode.SCIENCE; } }
-        public override string Section { get { return "SKA"; } }
-        public override string DisplaySection { get { return "SKA"; } }
+        public override string Section { get { return "KVAS"; } }
+        public override string DisplaySection { get { return "KVAS"; } }
         public override int SectionOrder { get { return 1; } }
         public override bool HasPresets { get { return false; } }
 
-        [GameParameters.CustomIntParameterUI("#SKA_Enable")]
+        [GameParameters.CustomIntParameterUI("#KVAS_sim_enable")]
         public bool Enable = true;
         
 
-        [GameParameters.CustomFloatParameterUI("#SKA_Career_Vessel", gameMode = GameParameters.GameMode.CAREER,
+        [GameParameters.CustomFloatParameterUI("#KVAS_sim_career_vessel", gameMode = GameParameters.GameMode.CAREER,
             minValue = 0.2f, maxValue = 20.0f, displayFormat = "N1")]
         public double Career_Vessel = 2.0f;
 
-        [GameParameters.CustomFloatParameterUI("#SKA_Science_Vessel", gameMode = GameParameters.GameMode.SCIENCE,
+        [GameParameters.CustomFloatParameterUI("#KVAS_sim_science_vessel", gameMode = GameParameters.GameMode.SCIENCE,
             minValue = 0.2f, maxValue = 20.0f, displayFormat = "N1")]
         public float Science_Vessel = 2.0f;
         
 
-        [GameParameters.CustomParameterUI("#SKA_Career_Bureaucracy", toolTip = "#SKA_Career_Bureaucracy_Tooltip", 
+        [GameParameters.CustomParameterUI("#KVAS_sim_career_bureaucracy", toolTip = "#KVAS_sim_career_bureaucracy_tooltip", 
             gameMode = GameParameters.GameMode.CAREER)]
         public bool Career_Bureaucracy = false;
 
-        [GameParameters.CustomParameterUI("#SKA_Science_Bureaucracy", toolTip = "#SKA_Science_Bureaucracy_Tooltip", 
+        [GameParameters.CustomParameterUI("#KVAS_sim_science_bureaucracy", toolTip = "#KVAS_sim_science_bureaucracy_tooltip", 
             gameMode = GameParameters.GameMode.SCIENCE)]
         public bool Science_Bureaucracy = false;
 
 
-        [GameParameters.CustomIntParameterUI("#SKA_Career_Const", gameMode = GameParameters.GameMode.CAREER,
+        [GameParameters.CustomIntParameterUI("#KVAS_sim_career_const", gameMode = GameParameters.GameMode.CAREER,
             minValue = 500, maxValue = 100000, stepSize = 500)]
         public int Career_Const = 1000;
 
-        [GameParameters.CustomFloatParameterUI("#SKA_Science_Const", gameMode = GameParameters.GameMode.SCIENCE,
+        [GameParameters.CustomFloatParameterUI("#KVAS_sim_science_const", gameMode = GameParameters.GameMode.SCIENCE,
             minValue = 0.2f, maxValue = 20.0f, displayFormat = "N1")]
         public float Science_Const = 0.5f;
 
 
 
-        [GameParameters.CustomStringParameterUI("#SKA_RE_String", lines = 7, title = "#SKA_RE_String")]
+        [GameParameters.CustomStringParameterUI("#KVAS_sim_re", lines = 7, title = "#KVAS_sim_re")]
         public string RE_String = "";
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)
@@ -86,48 +86,48 @@ namespace SKA
     }
 
 
-    public class STASettings : GameParameters.CustomParameterNode
+    public class KVAS_PlanSettings : GameParameters.CustomParameterNode
     {
 
-        public override string Title { get { return Localizer.Format("#STA_settings_title"); } }
+        public override string Title { get { return Localizer.Format("#KVAS_plan_title"); } }
         public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.CAREER | GameParameters.GameMode.SCIENCE; } }
-        public override string Section { get { return "SKA"; } }
-        public override string DisplaySection { get { return "SKA"; } }
+        public override string Section { get { return "KVAS"; } }
+        public override string DisplaySection { get { return "KVAS"; } }
         public override int SectionOrder { get { return 2; } }
         public override bool HasPresets { get { return false; } }
 
-        [GameParameters.CustomIntParameterUI("#STA_Enable")]
+        [GameParameters.CustomIntParameterUI("#KVAS_plan_enable")]
         public bool Enable = true;
         
-        [GameParameters.CustomIntParameterUI("#STA_Career_Seconds", gameMode = GameParameters.GameMode.CAREER,
+        [GameParameters.CustomIntParameterUI("#KVAS_plan_career_seconds", gameMode = GameParameters.GameMode.CAREER,
             minValue = 0, maxValue = 180, stepSize = 1)]
         public int Career_Seconds = 10;
 
-        [GameParameters.CustomIntParameterUI("#STA_Science_Seconds", gameMode = GameParameters.GameMode.SCIENCE,
+        [GameParameters.CustomIntParameterUI("#KVAS_plan_science_seconds", gameMode = GameParameters.GameMode.SCIENCE,
             minValue = 0, maxValue = 180, stepSize = 1)]
         public int Science_Seconds = 10;
         
-        [GameParameters.CustomParameterUI("#STA_Enable_RepSpeedUp", toolTip = "#STA_Enable_RepSpeedUp_Tooltip", 
+        [GameParameters.CustomParameterUI("#KVAS_plan_enable_rep", toolTip = "#KVAS_plan_enable_rep_tooltip", 
             gameMode = GameParameters.GameMode.CAREER)]
         public bool RepSpeedUp = true;
 
-        [GameParameters.CustomIntParameterUI("#STA_RepToNextLevel", toolTip = "#STA_RepToNextLevel_Tooltip", 
+        [GameParameters.CustomIntParameterUI("#KVAS_plan_rep", toolTip = "#KVAS_plan_rep_Tooltip", 
             gameMode = GameParameters.GameMode.CAREER, minValue = 10, maxValue = 300, stepSize = 5)]
         public int RepToNextLevel = 240;
 
 
-        [GameParameters.CustomParameterUI("#STA_Enable_KerbSpeedUp", toolTip = "#STA_Enable_KerbSpeedUp_Tooltip")]
+        [GameParameters.CustomParameterUI("#KVAS_plan_enable_kerb", toolTip = "#KVAS_plan_enable_kerb_tooltip")]
         public bool KerbSpeedUp = false;
 
-        [GameParameters.CustomIntParameterUI("#STA_KerbToNextLevel", toolTip = "#STA_KerbToNextLevel_Tooltip",
+        [GameParameters.CustomIntParameterUI("#KVAS_plan_kerb", toolTip = "#KVAS_plan_kerb_tooltip",
             minValue = 3, maxValue = 20, stepSize = 1)]
         public int KerbToNextLevel = 7;
 
 
-        [GameParameters.CustomParameterUI("#STA_Enable_Bureaucracy", toolTip = "#STA_Enable_Bureaucracy_Tooltip")]
+        [GameParameters.CustomParameterUI("#KVAS_plan_enable_bureaucracy", toolTip = "#KVAS_plan_enable_bureaucracy_tooltip")]
         public bool Bureaucracy = true;
 
-        [GameParameters.CustomIntParameterUI("#STA_BureaucracyTime", minValue = 1, maxValue = 142, stepSize = 1)]
+        [GameParameters.CustomIntParameterUI("#KVAS_plan_bureaucracy", minValue = 1, maxValue = 142, stepSize = 1)]
         public int BureaucracyTime = 1;
 
 

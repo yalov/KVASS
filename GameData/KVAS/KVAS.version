@@ -1,11 +1,11 @@
 {
-  "NAME": "SKA",
-  "URL": "https://raw.githubusercontent.com/yalov/SKA/master/SKA.version",
-  "DOWNLOAD": "https://github.com/yalov/SKA/releases",
+  "NAME": "KVAS",
+  "URL": "https://raw.githubusercontent.com/yalov/KVAS/master/KVAS.version",
+  "DOWNLOAD": "https://github.com/yalov/KVAS/releases",
   "VERSION": {
     "MAJOR": 0,
-    "MINOR": 6,
-    "PATCH": 8,
+    "MINOR": 7,
+    "PATCH": 6,
     "BUILD": 0
   },
   "KSP_VERSION": {

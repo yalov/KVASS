@@ -28,7 +28,7 @@
 	int i2 = 0;
 	string s;
 
-	string versionfile =  @"C:\Users\User\Games\Development\SKA\SKA.version";
+	string versionfile =  @"C:\Users\User\Games\Development\KVAS\KVAS.version";
 	if (!File.Exists(versionfile))
 	{
 		Write("File: " + versionfile + " missing\n");		

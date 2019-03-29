@@ -1,11 +1,11 @@
 ﻿using System;
 using UnityEngine;
 
-namespace SKA
+namespace KVAS
 {
     public static class Logging
     {
-        private static readonly string PREFIX = "<color=green>[SKA]</color> ";
+        private static readonly string PREFIX = "<color=green>[KVAS]</color> ";
 
         public static void Log(string msg, params object[] arg)
         {

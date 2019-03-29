@@ -7,8 +7,8 @@
     <ProjectGuid>{29393587-D98B-4C17-8BD1-829636B6B6FC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SKA</RootNamespace>
-    <AssemblyName>SKA</AssemblyName>
+    <RootNamespace>KVAS</RootNamespace>
+    <AssemblyName>KVAS</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -47,7 +47,7 @@
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
     <Compile Include="settings.cs" />
-    <Compile Include="SKA.cs" />
+    <Compile Include="KVAS.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Properties\AssemblyVersion.tt">
