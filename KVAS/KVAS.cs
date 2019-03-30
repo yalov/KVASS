@@ -8,6 +8,12 @@ using KSP.Localization;
 using KVAS_KACWrapper;
 using static KVAS.Logging;
 using KSP.UI.Screens;
+using UnityEngine.Experimental.UIElements.StyleSheets;
+using Expansions.Missions.Editor;
+using System.Collections.Generic;
+using KSP.UI;
+using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace KVAS
 {
@@ -17,6 +23,9 @@ namespace KVAS
         static KVAS_SimSettings settingsSim;
         static KVAS_PlanSettings settingsPlan;
         static Regex regex;
+        
+        static string Orange(string message) => "<color=orange>" + message + "</color>"; 
+        static string Red(string message)    => "<color=red>" + message + "</color>";
 
         public void Awake()
         {
@@ -43,7 +52,7 @@ namespace KVAS
             }
             else
             {
-                Log("KACWrapper: API is not ready");
+                // Log("KACWrapper: API is not ready");
             }
 
             try
@@ -59,6 +68,7 @@ namespace KVAS
 
         }
 
+
         /*
         public void OnDisable()
         {
@@ -70,46 +80,59 @@ namespace KVAS
 
             if (settingsSim.Enable && regex.IsMatch(EditorLogic.fetch.ship.shipName))
             {
-                Log("Simulation Launch");
+                // Log("Simulation Launch");
                 if (SimulationPurchase())
                     EditorLogic.fetch.launchVessel();
             }
             else if (settingsPlan.Enable && KACWrapper.APIReady)
             {
-                Log("Building");
+                // Log("Building");
 
                 //string ID;
-                string AlarmTitle = Localizer.Format("#KVAT_AlarmTitle", EditorLogic.fetch.ship.shipName);
+                string shipName = EditorLogic.fetch.ship.shipName;
+                string alarmTitle = Localizer.Format("#KVAS_plan_alarm_title", shipName);
 
-                if (IsAlarmFound(AlarmTitle, out string ID))
+                if (IsAlarmFound(alarmTitle, out string ID))
                 {
                     if (IsAlarmFinished(ID))
                     {
-                        RemoveAlarm(ID);
-                        Log("Alarm Is Finished, Launching");
-                        EditorLogic.fetch.launchVessel();
+                        if (PossibleToLaunch())
+                        {
+                            RemoveAlarm(ID);
+                            EditorLogic.fetch.launchVessel();
+                        }
                     }
                     else
                     {
-                        Log("Alarm Is Not Finished, Exit to KSC");
-                        HighLogic.LoadScene(GameScenes.SPACECENTER);
+                        PostScreenMessage(Orange(shipName + ": the planning is not finished"));
                     }
                 }
                 else
                 {
-                    Log("Alarm Is Not Found, Creating");
-                    CreateNewAlarm(AlarmTitle);
-                    //HighLogic.LoadScene(GameScenes.SPACECENTER);
+                    // Log("Alarm Is Not Found, Creating");
+                    CreateNewAlarm(alarmTitle);
+                    PostScreenMessage(shipName + ": the planning is started\nNew alarm is created", 7);
                 }
 
             }
             else
             {
-                Log("Safe Launch");
+                if (settingsPlan.Enable)
+                {
+                    Log("KAC API is not ready. Install KAC or disable Planning");
+                }
+                    
                 EditorLogic.fetch.launchVessel();
             }
             
         });
+
+        //public static List<string> GetLaunchSites(bool isVAB)
+        //{
+        //    EditorDriver.editorFacility = isVAB ? EditorFacility.VAB : EditorFacility.SPH;
+        //    typeof(EditorDriver).GetMethod("setupValidLaunchSites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);
+        //    return EditorDriver.ValidLaunchSites;
+        //}
 
 
         private string LoadRegExpPattern()
@@ -133,6 +156,73 @@ namespace KVAS
             return String.Join("|", RegExs);
         }
 
+        private static void PostScreenMessage(string message, float duration =5.0f, 
+            ScreenMessageStyle style = ScreenMessageStyle.UPPER_CENTER )
+        {
+            var msg = new ScreenMessage(message, duration, style);
+            ScreenMessages.PostScreenMessage(msg);
+        }
+
+
+        //private static void ShowDialog(string message = "You can't afford to launch this vessel.",
+        //    string close_title = "Unable to Launch", float height = 100f)
+        //{
+        //    PopupDialog.SpawnPopupDialog(
+        //        new MultiOptionDialog(
+        //            "NotEnoughFunds", message, "Not Enough Funds!",
+        //            HighLogic.UISkin,
+        //            new Rect(0.5f, 0.5f, 300f, height),
+        //            new DialogGUIButton(close_title, () => { }, true)
+        //        ), false, HighLogic.UISkin, true);
+        //}
+
+
+        private static bool PossibleToLaunch()
+        {
+            // TODO: Check on Damaged LaunchSite
+            // TODO: Check on Levels of LaunchSite
+            // TODO: Check on Levels of Editor
+
+            
+
+            if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
+            {
+                double shipCost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+                if (Funding.Instance.Funds >= shipCost)
+                {
+                    return true;
+                }
+                else
+                {
+                    PostScreenMessage(Orange("You don't have enough funds"));
+                    return false;
+                }
+            }
+            else
+                return true;
+        }
+
+
+        public static bool LaunchFacilityIntact(bool isVAB)
+        {
+           //EditorLogic
+
+            bool intact = true;
+            if (isVAB)
+            {
+                //intact = new PreFlightTests.FacilityOperational("LaunchPad", "building").Test();
+                intact = new PreFlightTests.FacilityOperational("LaunchPad", "LaunchPad").Test();
+            }
+            else // SPH
+            {
+                if (!new PreFlightTests.FacilityOperational("Runway", "Runway").Test())
+                    intact = false;
+            }
+            return intact;
+        }
+
+
+        // return is there enough funds
         private static bool SimulationPurchase()
         {
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
@@ -154,12 +244,11 @@ namespace KVAS
                     string message = "Not Enough Funds To Simulate!\n"
                     + String.Format("{0:F0} < {1:F0} + {2:F0}", Funding.Instance.Funds, shipCost, simulCost);
 
-                    var msg = new ScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                    ScreenMessages.PostScreenMessage(msg);
+                    PostScreenMessage(Orange(message));
+                    
                     return false;
                 }
-
-                //ShowDialog();
+                
             }
 
             else // if (HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
@@ -179,26 +268,14 @@ namespace KVAS
                     string message = "Not Enough Sci-points To Simulate!\n"
                     + String.Format("{0:F1} < {1:F1}", ResearchAndDevelopment.Instance.Science, science_points);
 
-                    var msg = new ScreenMessage(message, 5.0f, ScreenMessageStyle.UPPER_CENTER);
-                    ScreenMessages.PostScreenMessage(msg);
+                    PostScreenMessage(message);
+                    
                     return false;
                 }
             }
             
         }
-
-
-        private static void ShowDialog(string message = "You can't afford to launch this vessel.", 
-            string close_title = "Unable to Launch", float height = 100f)
-        {
-            PopupDialog.SpawnPopupDialog(
-                new MultiOptionDialog(
-                    "NotEnoughFunds", message, "Not Enough Funds!",
-                    HighLogic.UISkin,
-                    new Rect(0.5f, 0.5f, 300f, height),
-                    new DialogGUIButton(close_title, () => { }, true)
-                ), false, HighLogic.UISkin, true);
-        }
+        
 
         private static string CreateNewAlarm(string title)
         {
@@ -290,7 +367,7 @@ namespace KVAS
 
             if (list.Count() != 2)
             {
-                Log("Alarm note hasn't correct values. Safe Launch");
+                Log("The note in the alarm hasn't correct values. Safe Launch");
                 return -1; // negative
             }
 
@@ -312,12 +389,12 @@ namespace KVAS
                 double rem = Remaining(a);
                 if (rem < 0.0)
                 {
-                    Log("Loading vessel");
+                    // Log("Loading vessel");
                     return true;
                 }
                 else
                 {
-                    Log("LaunchRequest: Denied, Back to KSC");
+                    // Log("LaunchRequest: Denied, Back to KSC");
                     
                     return false;
                 }

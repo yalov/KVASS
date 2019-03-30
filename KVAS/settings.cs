@@ -111,7 +111,7 @@ namespace KVAS
             gameMode = GameParameters.GameMode.CAREER)]
         public bool RepSpeedUp = true;
 
-        [GameParameters.CustomIntParameterUI("#KVAS_plan_rep", toolTip = "#KVAS_plan_rep_Tooltip", 
+        [GameParameters.CustomIntParameterUI("#KVAS_plan_rep", toolTip = "#KVAS_plan_rep_tooltip", 
             gameMode = GameParameters.GameMode.CAREER, minValue = 10, maxValue = 300, stepSize = 5)]
         public int RepToNextLevel = 240;
 
