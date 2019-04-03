@@ -1,14 +1,11 @@
-<!--## KSP mod: KVAS - Kerbal Very Simplified Planning and Simulation-->
-<!--[![Version](https://img.shields.io/github/release/yalov/KVAS.svg?label=Version&colorB=4CC61E)](https://github.com/yalov/KVAS/releases) -->
-<!--[![Last Release](https://img.shields.io/github/release-date/yalov/KVAS.svg?label=Last%20Release&colorB=99C611)](https://github.com/yalov/KVAS/releases) -->
+[![Version](https://img.shields.io/github/release/yalov/KVAS.svg?label=Version&colorB=4CC61E)](https://github.com/yalov/KVAS/releases) 
+[![Last Release](https://img.shields.io/github/release-date/yalov/KVAS.svg?label=Last%20Release&colorB=99C611)](https://github.com/yalov/KVAS/releases) 
 <!--[![CKAN-Indexed](https://img.shields.io/badge/CKAN-Indexed-yellowgreen.svg)](https://github.com/KSP-CKAN/CKAN)-->
-<!--[![Forum thread](https://img.shields.io/badge/Link-Forum%20thread-blue.svg)](https://forum.kerbalspaceprogram.com/index.php?/topic/179385-*) -->
+[![Forum thread](https://img.shields.io/badge/Link-Forum%20thread-blue.svg)](https://forum.kerbalspaceprogram.com/index.php?/topic/183393-*) 
 <!--[![Spacedock](https://img.shields.io/badge/Link-Spacedock-blue.svg)](https://spacedock.info/mod/1989)-->
 
 
-Simple. No new GUI. No any Flight-Scene Calculation*. Simulation and Planning Time are together.
-
-![](https://github.com/yalov/KVAS/blob/master/Screenshots/scheme.jpg?raw=true)
+![scheme](https://github.com/yalov/KVAS/blob/master/Screenshots/scheme.jpg?raw=true)
 
 
 ### Simulation.
@@ -25,8 +22,6 @@ For the planning time management **Kerbal Alarm Clock** is used.
 You make your vessel in the Editor, click Launch, and instead of launching, new Alarm in the KAC is created. 
 if planning time satisfies you, you exit to the KSC and wait until your 'planning' KAC Alarm is finished. After that you going back to the Editor and finally launch your vessel with the Launch button. The funds will be spended when you launching your vessel.  Alarm is deleted automatically.
 
-The mod doesn't limit how many vessel you can plan simultaneously.  
-
 By default at start of your game, 1 fund of a vessel's cost will be planned 10 seconds, and additional day for a bureaucracy after. Simple as that!
 
 So, for example: 
@@ -42,7 +37,7 @@ so after 240 Rep time will be halved, after 480 Rep time will be thirded, etc.
 The Dynawing will be planned in 31 days if you have 240 Rep.
 If you enable second SpeedUp and have 7 available kerbonauts The Dynawing will be planned in 15 days
 
-Amount of simultaneous planning isn't limited. 
+The mod doesn't limit how many vessel you can plan simultaneously. 
 
 You could change all numbers in the setting page or enable/disable the "Simulation" and the "Planning Time" separately, KAC is necessary only for the "Planning Time".
 
