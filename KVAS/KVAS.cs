@@ -7,13 +7,7 @@ using KSP.Localization;
 
 using KVAS_KACWrapper;
 using static KVAS.Logging;
-using KSP.UI.Screens;
-using UnityEngine.Experimental.UIElements.StyleSheets;
-using Expansions.Missions.Editor;
-using System.Collections.Generic;
-using KSP.UI;
-using System.Collections;
-using System.Runtime.CompilerServices;
+
 
 namespace KVAS
 {
@@ -145,9 +139,6 @@ namespace KVAS
             {
                 foreach (var conf in configs)
                     RegExs = RegExs.Concat(conf.GetValues("Regex")).ToArray();
-                
-                //ConfigNode config = configs[0];
-                //RegExs = config.GetValues("Regex");
             }
 
             for (int i = 0; i < RegExs.Length; i++)
@@ -182,8 +173,8 @@ namespace KVAS
             // TODO: Check on Damaged LaunchSite
             // TODO: Check on Levels of LaunchSite
             // TODO: Check on Levels of Editor
-
-            
+            // MethodBase CheckFunction = typeof(EditorLogic).GetMethod("GetStockPreFlightCheck", 
+            // BindingFlags.Instance | BindingFlags.NonPublic);
 
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
             {
@@ -203,23 +194,21 @@ namespace KVAS
         }
 
 
-        public static bool LaunchFacilityIntact(bool isVAB)
-        {
-           //EditorLogic
-
-            bool intact = true;
-            if (isVAB)
-            {
-                //intact = new PreFlightTests.FacilityOperational("LaunchPad", "building").Test();
-                intact = new PreFlightTests.FacilityOperational("LaunchPad", "LaunchPad").Test();
-            }
-            else // SPH
-            {
-                if (!new PreFlightTests.FacilityOperational("Runway", "Runway").Test())
-                    intact = false;
-            }
-            return intact;
-        }
+        //public static bool LaunchFacilityIntact(bool isVAB)
+        //{
+        //    bool intact = true;
+        //    if (isVAB)
+        //    {
+        //        //intact = new PreFlightTests.FacilityOperational("LaunchPad", "building").Test();
+        //        intact = new PreFlightTests.FacilityOperational("LaunchPad", "LaunchPad").Test();
+        //    }
+        //    else // SPH
+        //    {
+        //        if (!new PreFlightTests.FacilityOperational("Runway", "Runway").Test())
+        //            intact = false;
+        //    }
+        //    return intact;
+        //}
 
 
         // return is there enough funds
@@ -268,12 +257,11 @@ namespace KVAS
                     string message = "Not Enough Sci-points To Simulate!\n"
                     + String.Format("{0:F1} < {1:F1}", ResearchAndDevelopment.Instance.Science, science_points);
 
-                    PostScreenMessage(message);
+                    PostScreenMessage(Orange(message));
                     
                     return false;
                 }
             }
-            
         }
         
 
@@ -335,7 +323,7 @@ namespace KVAS
                 Log("Available Crew: {0}, Teams: {1}", availableKerbs, teams);
             }
 
-            // last one. No SpeedUp 
+            // the last. The SpeedUps no affect. 
             if (settingsPlan.Bureaucracy)
                 time += settingsPlan.BureaucracyTime * 60 * 60 * (GameSettings.KERBIN_TIME ? 6 : 24);
 

@@ -1,5 +1,8 @@
 ChangeLog:
 
+## Version 0.8.0
+ * clearing code
+
 ## Version 0.7.6
  * Beta
 
