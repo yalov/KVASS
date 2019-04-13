@@ -6,8 +6,8 @@ rem v2
 rem instruction in the BUILDRELEASE.BAT
 
 rem Set variables here
-set GAMEPATH=c:\Users\User\Games\Kerbal Space Program 1.6.1
-set MODNAME=KVAS
+set GAMEPATH=c:\Users\User\Games\Kerbal Space Program 1.7.0
+set MODNAME=KVASS
 
 REM copy dll and .version to Repository/GameData
 REM /Y	Suppresses prompting to confirm that you want to overwrite an existing destination file.

@@ -1,11 +1,11 @@
 ﻿using System;
 using UnityEngine;
 
-namespace KVAS
+namespace KVASS
 {
     public static class Logging
     {
-        private static readonly string PREFIX = "<color=green>[KVAS]</color> ";
+        private static readonly string PREFIX = "<color=green>[KVASS]</color> ";
         private static readonly bool time = false;
 
         public static void Log<T>(T msg, params object[] args)

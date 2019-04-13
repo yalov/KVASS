@@ -5,21 +5,20 @@ using System.Linq;
 using UnityEngine;
 using KSP.Localization;
 
-using KVAS_KACWrapper;
-using static KVAS.Logging;
+using KVASS_KACWrapper;
+using static KVASS.Logging;
 
 
-namespace KVAS
+namespace KVASS
 {
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
-    public class KVAS : MonoBehaviour
+    public class KVASS : MonoBehaviour
     {
-        static KVAS_SimSettings settingsSim;
-        static KVAS_PlanSettings settingsPlan;
+        static KVASS_SimSettings settingsSim;
+        static KVASS_PlanSettings settingsPlan;
         static Regex regex;
         
-        static string Orange(string message) => "<color=orange>" + message + "</color>"; 
-        static string Red(string message)    => "<color=red>" + message + "</color>";
+        private static string Orange(string message) => "<color=orange>" + message + "</color>"; 
 
         public void Awake()
         {
@@ -33,8 +32,8 @@ namespace KVAS
 
         public void Start()
         {
-            settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVAS_SimSettings>();
-            settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVAS_PlanSettings>();
+            settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASS_SimSettings>();
+            settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASS_PlanSettings>();
 
             regex = new Regex(LoadRegExpPattern());
 
@@ -84,7 +83,7 @@ namespace KVAS
 
                 //string ID;
                 string shipName = EditorLogic.fetch.ship.shipName;
-                string alarmTitle = Localizer.Format("#KVAS_plan_alarm_title", shipName);
+                string alarmTitle = Localizer.Format("#KVASS_plan_alarm_title", shipName);
 
                 if (IsAlarmFound(alarmTitle, out string ID))
                 {
@@ -133,7 +132,7 @@ namespace KVAS
         {
             string[] RegExs = { "^.?[Tt]est" };
 
-            ConfigNode[] configs = GameDatabase.Instance.GetConfigNodes("KVAS");
+            ConfigNode[] configs = GameDatabase.Instance.GetConfigNodes("KVASS");
 
             if (configs != null)
             {
@@ -222,7 +221,6 @@ namespace KVAS
                 if (settingsSim.Career_Bureaucracy)
                     simulCost += settingsSim.Career_Const;
 
-                
                 if (Funding.Instance.Funds >= shipCost + simulCost)
                 {
                     Funding.Instance.AddFunds(-simulCost, TransactionReasons.VesselRollout);
@@ -237,7 +235,6 @@ namespace KVAS
                     
                     return false;
                 }
-                
             }
 
             else // if (HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
@@ -254,8 +251,12 @@ namespace KVAS
                 }
                 else
                 {
-                    string message = "Not Enough Sci-points To Simulate!\n"
-                    + String.Format("{0:F1} < {1:F1}", ResearchAndDevelopment.Instance.Science, science_points);
+                    double diff = Math.Abs(ResearchAndDevelopment.Instance.Science - science_points);
+                    double diffLog = Math.Log10(diff);
+                    string format = (diffLog > 0)? "F0" : "F" + Math.Ceiling(-diffLog);
+
+                    string message = "Not Enough Sci-points To Simulate!\n" + 
+                    ResearchAndDevelopment.Instance.Science.ToString(format) + " < " + science_points.ToString(format);
 
                     PostScreenMessage(Orange(message));
                     
@@ -325,7 +326,7 @@ namespace KVAS
 
             // the last. The SpeedUps no affect. 
             if (settingsPlan.Bureaucracy)
-                time += settingsPlan.BureaucracyTime * 60 * 60 * (GameSettings.KERBIN_TIME ? 6 : 24);
+                time += settingsPlan.BureaucracyTime * KSPUtil.dateTimeFormatter.Day;
 
             return time;
         }
@@ -391,9 +392,6 @@ namespace KVAS
             Log("KAC is not found");
             return true; // SafeLoad
         }
-
-
-        
 
 
         private static bool RemoveAlarm(string id)

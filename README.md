@@ -1,11 +1,11 @@
-[![Version](https://img.shields.io/github/release/yalov/KVAS.svg?label=Version&colorB=4CC61E)](https://github.com/yalov/KVAS/releases) 
-[![Last Release](https://img.shields.io/github/release-date/yalov/KVAS.svg?label=Last%20Release&colorB=99C611)](https://github.com/yalov/KVAS/releases) 
+[![Version](https://img.shields.io/github/release/yalov/KVASS.svg?label=Version&colorB=4CC61E)](https://github.com/yalov/KVASS/releases) 
+[![Last Release](https://img.shields.io/github/release-date/yalov/KVASS.svg?label=Last%20Release&colorB=99C611)](https://github.com/yalov/KVASS/releases) 
 <!--[![CKAN-Indexed](https://img.shields.io/badge/CKAN-Indexed-yellowgreen.svg)](https://github.com/KSP-CKAN/CKAN)-->
 [![Forum thread](https://img.shields.io/badge/Link-Forum%20thread-blue.svg)](https://forum.kerbalspaceprogram.com/index.php?/topic/183393-*) 
 <!--[![Spacedock](https://img.shields.io/badge/Link-Spacedock-blue.svg)](https://spacedock.info/mod/1989)-->
 
 
-![scheme](https://github.com/yalov/KVAS/blob/master/Screenshots/scheme.jpg?raw=true)
+![scheme](https://github.com/yalov/KVASS/blob/master/Screenshots/scheme.jpg?raw=true)
 
 
 ### Simulation.
