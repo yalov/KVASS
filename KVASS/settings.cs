@@ -24,11 +24,11 @@ namespace KVASS
         
 
         [GameParameters.CustomFloatParameterUI("#KVASS_sim_career_vessel", gameMode = GameParameters.GameMode.CAREER,
-            minValue = 0.2f, maxValue = 20.0f, displayFormat = "N1")]
+            minValue = 0.0f, maxValue = 20.0f, displayFormat = "N1")]
         public double Career_Vessel = 2.0f;
 
         [GameParameters.CustomFloatParameterUI("#KVASS_sim_science_vessel", gameMode = GameParameters.GameMode.SCIENCE,
-            minValue = 0.2f, maxValue = 20.0f, displayFormat = "N1")]
+            minValue = 0.0f, maxValue = 20.0f, displayFormat = "N1")]
         public float Science_Vessel = 2.0f;
         
 
@@ -46,7 +46,7 @@ namespace KVASS
         public int Career_Const = 1000;
 
         [GameParameters.CustomFloatParameterUI("#KVASS_sim_science_const", gameMode = GameParameters.GameMode.SCIENCE,
-            minValue = 0.2f, maxValue = 20.0f, displayFormat = "N1")]
+            minValue = 0.1f, maxValue = 20.0f, displayFormat = "N1")]
         public float Science_Const = 0.5f;
 
 

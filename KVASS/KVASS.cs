@@ -228,8 +228,13 @@ namespace KVASS
                 }
                 else
                 {
+                    double diff = Math.Abs(shipCost + simulCost - Funding.Instance.Funds);
+                    double diffLog = Math.Log10(diff);
+                    string format = (diffLog > 0) ? "F0" : "F" + Math.Ceiling(-diffLog);
+
                     string message = "Not Enough Funds To Simulate!\n"
-                    + String.Format("{0:F0} < {1:F0} + {2:F0}", Funding.Instance.Funds, shipCost, simulCost);
+                    + Funding.Instance.Funds.ToString(format) + " < " +
+                    shipCost.ToString(format) + " + " + simulCost.ToString(format);
 
                     PostScreenMessage(Orange(message));
                     
@@ -244,6 +249,8 @@ namespace KVASS
                 if (settingsSim.Science_Bureaucracy)
                     science_points += settingsSim.Science_Const;
 
+                if (science_points == 0) return true;
+
                 if (ResearchAndDevelopment .Instance.Science >= science_points )
                 {
                     ResearchAndDevelopment.Instance.AddScience(-science_points, TransactionReasons.VesselRollout);
@@ -251,7 +258,7 @@ namespace KVASS
                 }
                 else
                 {
-                    double diff = Math.Abs(ResearchAndDevelopment.Instance.Science - science_points);
+                    double diff = Math.Abs(science_points - ResearchAndDevelopment.Instance.Science);
                     double diffLog = Math.Log10(diff);
                     string format = (diffLog > 0)? "F0" : "F" + Math.Ceiling(-diffLog);
 
