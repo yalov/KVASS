@@ -184,7 +184,16 @@ namespace KVASS
                 }
                 else
                 {
-                    PostScreenMessage(Orange("You don't have enough funds"));
+                    double diff = Math.Abs(shipCost - Funding.Instance.Funds);
+                    double diffLog = Math.Log10(diff);
+                    string format = (diffLog > 0) ? "F0" : "F" + Math.Ceiling(-diffLog);
+
+                    string message = "Not Enough Funds!\n"
+                    + Funding.Instance.Funds.ToString(format) + " < " +
+                    shipCost.ToString(format);
+
+                    PostScreenMessage(Orange(message));
+
                     return false;
                 }
             }
@@ -220,6 +229,8 @@ namespace KVASS
 
                 if (settingsSim.Career_Bureaucracy)
                     simulCost += settingsSim.Career_Const;
+
+                if (simulCost == 0) return true;
 
                 if (Funding.Instance.Funds >= shipCost + simulCost)
                 {
@@ -260,7 +271,7 @@ namespace KVASS
                 {
                     double diff = Math.Abs(science_points - ResearchAndDevelopment.Instance.Science);
                     double diffLog = Math.Log10(diff);
-                    string format = (diffLog > 0)? "F0" : "F" + Math.Ceiling(-diffLog);
+                    string format = (diffLog > 0)? "F1" : "F" + Math.Ceiling(-diffLog);
 
                     string message = "Not Enough Sci-points To Simulate!\n" + 
                     ResearchAndDevelopment.Instance.Science.ToString(format) + " < " + science_points.ToString(format);
@@ -285,14 +296,16 @@ namespace KVASS
                     title,
                     Planetarium.GetUniversalTime() + time);
 
-                Log("New Alarm: {0}, {1:F1} days", title, time / 3600 / 6);
+                Log("New Alarm: {0}, {1:F1} days", title, time / KSPUtil.dateTimeFormatter.Day);
 
                 if (aID != "")
                 {
                     //if the alarm was made get the object so we can update it
                     KACWrapper.KACAPI.KACAlarm a = KACWrapper.KAC.Alarms.First(z => z.ID == aID);
-                    
-                    a.Notes = HighLogic.CurrentGame.flightState.universalTime.ToString("F0") +" "+ time.ToString("F0");
+
+                    a.Notes = String.Format("{2}\n{0:F0} {1:F0}",
+                        HighLogic.CurrentGame.flightState.universalTime, time,
+                        Localizer.Format("#KVASS_plan_message_alarm"));
                     a.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.KillWarpOnly;
                     a.AlarmMargin = 0;
                 }
@@ -313,12 +326,14 @@ namespace KVASS
             else
                 time = mass * settingsPlan.Science_Seconds;
 
+            string log_str = "";
+
             if (settingsPlan.RepSpeedUp && career)
             {
                 int currRep = Math.Max((int)Reputation.CurrentRep, 0);
                 double lines = currRep / settingsPlan.RepToNextLevel +1;
                 time /= lines;
-                Log("Reputation: {0}, ProdLines: {1}" , Reputation.CurrentRep, lines);
+                log_str += String.Format("RepSpeedUp: x{0}, " , lines);
             }
 
             if (settingsPlan.KerbSpeedUp)
@@ -328,12 +343,15 @@ namespace KVASS
                 int teams = availableKerbs / settingsPlan.KerbToNextLevel + 1;
 
                 time /= teams ;
-                Log("Available Crew: {0}, Teams: {1}", availableKerbs, teams);
+                log_str += String.Format("CrewSpeedUp: x{0}, ", teams);
             }
 
             // the last. The SpeedUps no affect. 
             if (settingsPlan.Bureaucracy)
                 time += settingsPlan.BureaucracyTime * KSPUtil.dateTimeFormatter.Day;
+
+            log_str += String.Format("PlanTime: {0}d", time / KSPUtil.dateTimeFormatter.Day);
+            Log(log_str);
 
             return time;
         }
@@ -359,20 +377,22 @@ namespace KVASS
         {
             // looks like a.Remaining doesn't work in the VAB/SPH :(
 
-            var list = a.Notes.Split(' ');
+            string line = a.Notes.Split('\n').Last();
+            string[] values = line.Split(' ');
 
-            if (list.Count() != 2)
+            if (values.Count() != 2)
             {
                 Log("The note in the alarm hasn't correct values. Safe Launch");
                 return -1; // negative
             }
 
-            double ut = HighLogic.CurrentGame.flightState.universalTime;
-            double ut_start = Convert.ToDouble(list[0]);
-            double passed = ut - ut_start;
-            double rem = Convert.ToDouble(list[1]) - passed;
+            double timer_created = Convert.ToDouble(values[0]);
+            double timer_interval = Convert.ToDouble(values[1]);
+            double time_now = HighLogic.CurrentGame.flightState.universalTime;
+            double passed = time_now - timer_created;
+            double remains = timer_interval - passed;
 
-            return rem;
+            return remains;
 
         }
 

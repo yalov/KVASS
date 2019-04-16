@@ -29,7 +29,7 @@ namespace KVASS
 
         [GameParameters.CustomFloatParameterUI("#KVASS_sim_science_vessel", gameMode = GameParameters.GameMode.SCIENCE,
             minValue = 0.0f, maxValue = 20.0f, displayFormat = "N1")]
-        public float Science_Vessel = 2.0f;
+        public float Science_Vessel = 1.0f;
         
 
         [GameParameters.CustomParameterUI("#KVASS_sim_career_bureaucracy", toolTip = "#KVASS_sim_career_bureaucracy_tooltip", 
@@ -105,7 +105,7 @@ namespace KVASS
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_science_seconds", gameMode = GameParameters.GameMode.SCIENCE,
             minValue = 0, maxValue = 180, stepSize = 1)]
-        public int Science_Seconds = 10;
+        public int Science_Seconds = 4;
         
         [GameParameters.CustomParameterUI("#KVASS_plan_enable_rep", toolTip = "#KVASS_plan_enable_rep_tooltip", 
             gameMode = GameParameters.GameMode.CAREER)]
