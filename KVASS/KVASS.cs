@@ -7,7 +7,8 @@ using KSP.Localization;
 
 using KVASS_KACWrapper;
 using static KVASS.Logging;
-
+using KSP.UI;
+using System.Collections;
 
 namespace KVASS
 {
@@ -35,6 +36,7 @@ namespace KVASS
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASS_SimSettings>();
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASS_PlanSettings>();
 
+
             regex = new Regex(LoadRegExpPattern());
 
             KACWrapper.InitKACWrapper();
@@ -50,13 +52,70 @@ namespace KVASS
 
             try
             {
-                UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent();
-                c.AddListener(OnLoadClick);
-                EditorLogic.fetch.launchBtn.onClick = c;
+                StartCoroutine("HandleEditorButton");
+                //HandleEditorButton();
             }
             catch
             {
-                Log("Cannot reset launch button");
+                Log("Cannot reset launch buttons");
+            }
+
+        }
+
+        // copypaste from https://github.com/linuxgurugamer/KCT
+        public IEnumerator HandleEditorButton()
+        {
+            //UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent();
+            //c.AddListener(OnLoadClick);
+            //EditorLogic.fetch.launchBtn.onClick = c;
+
+            UnityEngine.UI.Button greenButton = EditorLogic.fetch.launchBtn;
+            greenButton.onClick.RemoveAllListeners();
+            greenButton.onClick.AddListener(() => { LaunchListener(null); });
+
+            // 1.4 Addition
+            //delete listeners to the launchsite specific buttons
+            yield return new WaitForSeconds(0.25f);
+
+            UILaunchsiteController controller = UnityEngine.Object.FindObjectOfType<UILaunchsiteController>();
+            if (controller == null)
+                Log("HandleEditorButton.controller is null");
+            else
+            {
+                Log("HandleEditorButton.controller is not null");
+                //
+                // Need to use the try/catch because if multiple launch sites are disabled, then this would generate
+                // the following error:
+                //                          Cannot cast from source type to destination type
+                // which happens because the private member "launchPadItems" is a list, and if it is null, then it is
+                // not castable to a IEnumerable
+                //
+                try
+                {
+                    IEnumerable list = controller.GetType().GetPrivateMemberValue("launchPadItems", controller, 4) as IEnumerable;
+
+                    if (list != null)
+                    {
+                        foreach (object site in list)
+                        {
+                            //find and disable the button
+                            //why isn't EditorLaunchPadItem public despite all of its members being public?
+                            
+                            
+                            UnityEngine.UI.Button button = site.GetType().GetPublicValue<UnityEngine.UI.Button>("buttonLaunch", site);
+                            if (button != null)
+                            {
+                                button.onClick.RemoveAllListeners();
+                                string siteName = site.GetType().GetPublicValue<string>("siteName", site);
+                                button.onClick.AddListener(() => { LaunchListener(siteName); });
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log("HandleEditorButton: Exception: " + ex.Message);
+                }
             }
 
         }
@@ -68,16 +127,29 @@ namespace KVASS
         }
         */
 
-        //Replace the default action
-        public UnityEngine.Events.UnityAction OnLoadClick = new UnityEngine.Events.UnityAction(() => {
 
-            if (settingsSim.Enable && regex.IsMatch(EditorLogic.fetch.ship.shipName))
+
+        //Replace the default action to LaunchListener.
+        public static void LaunchListener(string launchSite) {
+
+            if (string.IsNullOrEmpty(launchSite))
+            {
+                launchSite = EditorLogic.fetch.launchSiteName;
+            }
+
+            if (settingsSim.Enable 
+                && !(settingsSim.IgnoreSPH && EditorDriver.editorFacility == EditorFacility.SPH) 
+                && regex.IsMatch(EditorLogic.fetch.ship.shipName))
             {
                 // Log("Simulation Launch");
-                if (SimulationPurchase())
-                    EditorLogic.fetch.launchVessel();
+                bool success = SimulationPurchase();
+
+                if (success)
+                    EditorLogic.fetch.launchVessel(launchSite);
             }
-            else if (settingsPlan.Enable && KACWrapper.APIReady)
+            else if (settingsPlan.Enable
+                 && !(settingsPlan.IgnoreSPH && EditorDriver.editorFacility == EditorFacility.SPH) 
+                 && KACWrapper.APIReady)
             {
                 // Log("Building");
 
@@ -89,10 +161,10 @@ namespace KVASS
                 {
                     if (IsAlarmFinished(ID))
                     {
-                        if (PossibleToLaunch())
+                        if (IsPossibleToLaunch())
                         {
                             RemoveAlarm(ID);
-                            EditorLogic.fetch.launchVessel();
+                            EditorLogic.fetch.launchVessel(launchSite);
                         }
                     }
                     else
@@ -102,7 +174,7 @@ namespace KVASS
                 }
                 else
                 {
-                    // Log("Alarm Is Not Found, Creating");
+                    // Alarm Is Not Found, Creating
                     CreateNewAlarm(alarmTitle);
                     PostScreenMessage(shipName + ": the planning is started\nNew alarm is created", 7);
                 }
@@ -110,15 +182,11 @@ namespace KVASS
             }
             else
             {
-                if (settingsPlan.Enable)
-                {
-                    Log("KAC API is not ready. Install KAC or disable Planning");
-                }
-                    
+                Log("SafeLaunch");
                 EditorLogic.fetch.launchVessel();
             }
             
-        });
+        }
 
         //public static List<string> GetLaunchSites(bool isVAB)
         //{
@@ -167,7 +235,7 @@ namespace KVASS
         //}
 
 
-        private static bool PossibleToLaunch()
+        private static bool IsPossibleToLaunch()
         {
             // TODO: Check on Damaged LaunchSite
             // TODO: Check on Levels of LaunchSite
@@ -219,7 +287,9 @@ namespace KVASS
         //}
 
 
-        // return is there enough funds
+        /// <summary>
+        /// return Boolean success
+        /// </summary>
         private static bool SimulationPurchase()
         {
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
@@ -296,18 +366,25 @@ namespace KVASS
                     title,
                     Planetarium.GetUniversalTime() + time);
 
-                Log("New Alarm: {0}, {1:F1} days", title, time / KSPUtil.dateTimeFormatter.Day);
+                Log("New Alarm: {0}", title);
 
                 if (aID != "")
                 {
                     //if the alarm was made get the object so we can update it
                     KACWrapper.KACAPI.KACAlarm a = KACWrapper.KAC.Alarms.First(z => z.ID == aID);
 
-                    a.Notes = String.Format("{2}\n{0:F0} {1:F0}",
-                        HighLogic.CurrentGame.flightState.universalTime, time,
-                        Localizer.Format("#KVASS_plan_message_alarm"));
-                    a.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.KillWarpOnly;
+                    // a.Remaining doesn't work in the VAB/SPH, so append magic numbers to the alarm note
+                    // and use it later.
+                    a.Notes = String.Format("{0} {1}: {2:F0} {3:F0}",
+                        Localizer.Format("#KVASS_plan_message_alarm"), Localizer.Format("#KVASS_plan_message_alarm_magic"),
+                        HighLogic.CurrentGame.flightState.universalTime, time);
                     a.AlarmMargin = 0;
+
+                    if (settingsPlan.KillTimeWarp)
+                        a.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.KillWarpOnly;
+                    else
+                        a.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.DoNothing;
+
                 }
             }
             return aID;
@@ -333,7 +410,7 @@ namespace KVASS
                 int currRep = Math.Max((int)Reputation.CurrentRep, 0);
                 double lines = currRep / settingsPlan.RepToNextLevel +1;
                 time /= lines;
-                log_str += String.Format("RepSpeedUp: x{0}, " , lines);
+                log_str += String.Format(", RepSpeedUp: x{0}" , lines);
             }
 
             if (settingsPlan.KerbSpeedUp)
@@ -343,14 +420,14 @@ namespace KVASS
                 int teams = availableKerbs / settingsPlan.KerbToNextLevel + 1;
 
                 time /= teams ;
-                log_str += String.Format("CrewSpeedUp: x{0}, ", teams);
+                log_str += String.Format(", CrewSpeedUp: x{0}", teams);
             }
 
             // the last. The SpeedUps no affect. 
             if (settingsPlan.Bureaucracy)
                 time += settingsPlan.BureaucracyTime * KSPUtil.dateTimeFormatter.Day;
 
-            log_str += String.Format("PlanTime: {0}d", time / KSPUtil.dateTimeFormatter.Day);
+            log_str = String.Format("PlanTime: {0:F1} days", time / KSPUtil.dateTimeFormatter.Day) + log_str;
             Log(log_str);
 
             return time;
@@ -377,20 +454,44 @@ namespace KVASS
         {
             // looks like a.Remaining doesn't work in the VAB/SPH :(
 
-            string line = a.Notes.Split('\n').Last();
-            string[] values = line.Split(' ');
+            string line = a.Notes.Split(':')?.Last();
+            string[] values = line?.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (values.Count() != 2)
+            foreach(var v in values)
+                Log(v);
+            
+
+            if (values?.Count() != 2)
             {
-                Log("The note in the alarm hasn't correct values. Safe Launch");
+                Log("The AlarmNote isn't correct. Safe Launch");
                 return -1; // negative
             }
 
-            double timer_created = Convert.ToDouble(values[0]);
-            double timer_interval = Convert.ToDouble(values[1]);
+            double timer_created;
+            double timer_interval;
+
+            try
+            {
+                timer_created = Convert.ToDouble(values[0]);
+                timer_interval = Convert.ToDouble(values[1]);
+            }
+            catch (FormatException)   { Log("The magic numbers in the AlarmNote isn't correct. Safe Launch"); return -1; }
+            catch (OverflowException) { Log("The magic numbers in the AlarmNote isn't correct. Safe Launch"); return -1; }
+
+
             double time_now = HighLogic.CurrentGame.flightState.universalTime;
             double passed = time_now - timer_created;
             double remains = timer_interval - passed;
+
+            {
+                // alternative approach using AlarmTime;
+                double alarmTime = a.AlarmTime;
+
+                Log("Time {0:F2} {1:F2}", remains, alarmTime - time_now);
+
+                return alarmTime - time_now; 
+            }
+            
 
             return remains;
 

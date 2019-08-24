@@ -1,5 +1,10 @@
 ChangeLog:
 
+## Version 0.9.0
+ * MH Launch buttons
+ * Ignore SPH option (planes and trucks is built without planning/simulation)
+ * Planning alarm do not kill timewarp option
+
 ## Version 0.8.3
  * at least 1 decimal digit
    in the science warning message

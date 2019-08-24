@@ -21,7 +21,10 @@ namespace KVASS
 
         [GameParameters.CustomIntParameterUI("#KVASS_sim_enable")]
         public bool Enable = true;
-        
+
+        [GameParameters.CustomIntParameterUI("#KVASS_sim_ignore_SPH")]
+        public bool IgnoreSPH = false;
+
 
         [GameParameters.CustomFloatParameterUI("#KVASS_sim_career_vessel", gameMode = GameParameters.GameMode.CAREER,
             minValue = 0.0f, maxValue = 20.0f, displayFormat = "N1")]
@@ -63,10 +66,10 @@ namespace KVASS
         public override bool Interactible(MemberInfo member, GameParameters parameters)
         {
 
-            if (member.Name == "RE_String"
-                
+            if (member.Name == "IgnoreSPH"
                 || member.Name == "Science_Vessel"|| member.Name == "Career_Vessel"
                 || member.Name == "Science_Bureaucracy" || member.Name == "Career_Bureaucracy"
+                || member.Name == "RE_String"
                 )
                 return Enable;
 
@@ -98,7 +101,10 @@ namespace KVASS
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_enable")]
         public bool Enable = true;
-        
+
+        [GameParameters.CustomIntParameterUI("#KVASS_plan_ignore_SPH")]
+        public bool IgnoreSPH = false;
+
         [GameParameters.CustomIntParameterUI("#KVASS_plan_career_seconds", gameMode = GameParameters.GameMode.CAREER,
             minValue = 0, maxValue = 180, stepSize = 1)]
         public int Career_Seconds = 10;
@@ -130,6 +136,9 @@ namespace KVASS
         [GameParameters.CustomIntParameterUI("#KVASS_plan_bureaucracy", minValue = 1, maxValue = 142, stepSize = 1)]
         public int BureaucracyTime = 1;
 
+        [GameParameters.CustomParameterUI("#KVASS_plan_kill_timewarp", toolTip = "#KVASS_plan_kill_timewarp_tooltip")]
+        public bool KillTimeWarp = true;
+
 
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)
@@ -139,9 +148,11 @@ namespace KVASS
 
         public override bool Interactible(MemberInfo member, GameParameters parameters)
         {
-            if (member.Name == "Career_Seconds" || member.Name == "Science_Seconds"
+            if (member.Name == "IgnoreSPH"
+                || member.Name == "Career_Seconds" || member.Name == "Science_Seconds"
                 || member.Name == "RepSpeedUp" || member.Name == "KerbSpeedUp"
                 || member.Name == "Bureaucracy"
+
                 )
                 return Enable;
             

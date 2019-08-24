@@ -48,6 +48,7 @@
     </Compile>
     <Compile Include="settings.cs" />
     <Compile Include="KVASS.cs" />
+    <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Properties\AssemblyVersion.tt">
@@ -64,9 +65,9 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>
-set textTemplatingPath="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\TextTransform.exe"
+set TextTransformPath="%25ProgramFiles(x86)%25\Microsoft Visual Studio\2019\Community\Common7\IDE\TextTransform.exe"
 
-%25textTemplatingPath%25 -out "$(ProjectDir)Properties\AssemblyVersion.cs" "$(ProjectDir)Properties\AssemblyVersion.tt"</PreBuildEvent>
+%25TextTransformPath%25 -out "$(ProjectDir)Properties\AssemblyVersion.cs" "$(ProjectDir)Properties\AssemblyVersion.tt"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>cd "$(SolutionDir)"                                                          

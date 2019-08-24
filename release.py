@@ -1,5 +1,7 @@
 """requirements: 
-Python3, pip install GitPython, pip install PyGithub, ./release_spacedock_utils.py
+Python3 
+pip install GitPython PyGithub
+./release_spacedock_utils.py
 
 Public domain license.
 author: flart, version: 10
