@@ -12,6 +12,7 @@ using System.Collections;
 
 namespace KVASS
 {
+    // https://github.com/linuxgurugamer/KCT was used there
     [KSPAddon(KSPAddon.Startup.EditorAny, false)]
     public class KVASS : MonoBehaviour
     {
@@ -33,6 +34,8 @@ namespace KVASS
 
         public void Start()
         {
+            Log("Start");
+
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASS_SimSettings>();
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASS_PlanSettings>();
 
@@ -41,30 +44,64 @@ namespace KVASS
 
             KACWrapper.InitKACWrapper();
 
+            /*
             if (KACWrapper.APIReady)
             {
-                // Log("KACWrapper: API Ready");
+                Log("KACWrapper: API Ready");
             }
             else
             {
-                // Log("KACWrapper: API is not ready");
+                Log("KACWrapper: API is not ready");
             }
+            */
 
-            try
+            // straight calling HandleEditorButton makes uninitialized controller
+            // GameEvents seems enough for  all necessary objects be initialized 
+            // also possible to uncomment Coroutine
+
+            // straight calling has problem on the first going into editor
+            // GameEvents has problem later.
+            // hopefully they will work together
+            HandleEditorButton();
+            GameEvents.onEditorStarted.Add(HandleEditorButton);
+            
+
+            /*
+            try 
             {
-                StartCoroutine("HandleEditorButton");
-                //HandleEditorButton();
+                StartCoroutine(HandleEditorButton_Coroutine());
             }
             catch
             {
-                Log("Cannot reset launch buttons");
+                Log("Cannot start coroutine");
             }
+            */
 
         }
 
-        // copypaste from https://github.com/linuxgurugamer/KCT
-        public IEnumerator HandleEditorButton()
+        public void OnDisable()
         {
+            GameEvents.onEditorStarted.Remove(HandleEditorButton);
+        }
+
+        /// <summary>
+        /// Coroutine to reset the launch button handlers every 1/2 second
+        /// Needed (not confirmed) because KSP seems to change them behind the scene sometimes
+        /// </summary>
+        /// <returns></returns>
+        IEnumerator HandleEditorButton_Coroutine()
+        {
+            while (true)
+            {
+                HandleEditorButton();
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+
+        
+        void HandleEditorButton()
+        {
+            Log("HandleEditorButton");
             //UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent();
             //c.AddListener(OnLoadClick);
             //EditorLogic.fetch.launchBtn.onClick = c;
@@ -73,16 +110,14 @@ namespace KVASS
             greenButton.onClick.RemoveAllListeners();
             greenButton.onClick.AddListener(() => { LaunchListener(null); });
 
-            // 1.4 Addition
-            //delete listeners to the launchsite specific buttons
-            yield return new WaitForSeconds(0.25f);
+            //yield return new WaitForSeconds(0.25f);
 
             UILaunchsiteController controller = UnityEngine.Object.FindObjectOfType<UILaunchsiteController>();
             if (controller == null)
-                Log("HandleEditorButton.controller is null");
+                Log("HandleEditorButton: Controller is null");
             else
             {
-                Log("HandleEditorButton.controller is not null");
+                Log("HandleEditorButton: Controller is OK");
                 //
                 // Need to use the try/catch because if multiple launch sites are disabled, then this would generate
                 // the following error:
@@ -121,11 +156,9 @@ namespace KVASS
         }
 
 
-        /*
-        public void OnDisable()
-        {
-        }
-        */
+        
+        
+        
 
 
 
@@ -187,13 +220,6 @@ namespace KVASS
             }
             
         }
-
-        //public static List<string> GetLaunchSites(bool isVAB)
-        //{
-        //    EditorDriver.editorFacility = isVAB ? EditorFacility.VAB : EditorFacility.SPH;
-        //    typeof(EditorDriver).GetMethod("setupValidLaunchSites", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.Invoke(null, null);
-        //    return EditorDriver.ValidLaunchSites;
-        //}
 
 
         private string LoadRegExpPattern()
@@ -375,9 +401,12 @@ namespace KVASS
 
                     // a.Remaining doesn't work in the VAB/SPH, so append magic numbers to the alarm note
                     // and use it later.
-                    a.Notes = String.Format("{0} {1}: {2:F0} {3:F0}",
-                        Localizer.Format("#KVASS_plan_message_alarm"), Localizer.Format("#KVASS_plan_message_alarm_magic"),
-                        HighLogic.CurrentGame.flightState.universalTime, time);
+                    // a.alarmtime?
+                    //a.Notes = String.Format("{0} {1}: {2:F0} {3:F0}",
+                    //    Localizer.Format("#KVASS_plan_message_alarm"), Localizer.Format("#KVASS_plan_message_alarm_magic"),
+                    //    HighLogic.CurrentGame.flightState.universalTime, time);
+
+                    a.Notes = String.Format("{0}", Localizer.Format("#KVASS_plan_message_alarm"));
                     a.AlarmMargin = 0;
 
                     if (settingsPlan.KillTimeWarp)
@@ -452,49 +481,50 @@ namespace KVASS
 
         private static double Remaining(KACWrapper.KACAPI.KACAlarm a)
         {
-            // looks like a.Remaining doesn't work in the VAB/SPH :(
 
-            string line = a.Notes.Split(':')?.Last();
-            string[] values = line?.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            foreach(var v in values)
-                Log(v);
-            
+            //// looks like a.Remaining doesn't work in the VAB/SPH :(
+            //string line = a.Notes.Split(':')?.Last();
+            //string[] values = line?.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            if (values?.Count() != 2)
-            {
-                Log("The AlarmNote isn't correct. Safe Launch");
-                return -1; // negative
-            }
+            //foreach(var v in values)
+            //    Log(v);
 
-            double timer_created;
-            double timer_interval;
 
-            try
-            {
-                timer_created = Convert.ToDouble(values[0]);
-                timer_interval = Convert.ToDouble(values[1]);
-            }
-            catch (FormatException)   { Log("The magic numbers in the AlarmNote isn't correct. Safe Launch"); return -1; }
-            catch (OverflowException) { Log("The magic numbers in the AlarmNote isn't correct. Safe Launch"); return -1; }
+            //if (values?.Count() != 2)
+            //{
+            //    Log("The AlarmNote isn't correct. Safe Launch");
+            //    return -1; // negative
+            //}
+
+            //double timer_created;
+            //double timer_interval;
+
+            //try
+            //{
+            //    timer_created = Convert.ToDouble(values[0]);
+            //    timer_interval = Convert.ToDouble(values[1]);
+            //}
+            //catch (FormatException)   { Log("The magic numbers in the AlarmNote isn't correct. Safe Launch"); return -1; }
+            //catch (OverflowException) { Log("The magic numbers in the AlarmNote isn't correct. Safe Launch"); return -1; }
 
 
             double time_now = HighLogic.CurrentGame.flightState.universalTime;
-            double passed = time_now - timer_created;
-            double remains = timer_interval - passed;
+            //double passed = time_now - timer_created;
+            //double remains = timer_interval - passed;
 
-            {
-                // alternative approach using AlarmTime;
-                double alarmTime = a.AlarmTime;
 
-                Log("Time {0:F2} {1:F2}", remains, alarmTime - time_now);
 
-                return alarmTime - time_now; 
-            }
-            
 
-            return remains;
+            //return remains;
 
+
+            // alternative approach using AlarmTime;
+            double alarmTime = a.AlarmTime;
+
+            Log("Remains {0:F2} days", (alarmTime - time_now) / KSPUtil.dateTimeFormatter.Day);
+
+            return alarmTime - time_now;
         }
 
         private static bool IsAlarmFinished(string id)
