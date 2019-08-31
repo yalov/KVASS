@@ -139,6 +139,9 @@ namespace KVASS
         [GameParameters.CustomParameterUI("#KVASS_plan_kill_timewarp", toolTip = "#KVASS_plan_kill_timewarp_tooltip")]
         public bool KillTimeWarp = true;
 
+        [GameParameters.CustomParameterUI("#KVASS_plan_queue", toolTip = "#KVASS_plan_queue_tooltip")]
+        public bool Queue = false;
+
 
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)
@@ -152,6 +155,8 @@ namespace KVASS
                 || member.Name == "Career_Seconds" || member.Name == "Science_Seconds"
                 || member.Name == "RepSpeedUp" || member.Name == "KerbSpeedUp"
                 || member.Name == "Bureaucracy"
+                || member.Name == "KillTimeWarp"
+                || member.Name == "Queue"
 
                 )
                 return Enable;

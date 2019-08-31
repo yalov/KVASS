@@ -1,9 +1,12 @@
 ChangeLog:
 
 ## Version 0.9.0
- * MH Launch buttons
- * Ignore SPH option (planes and trucks is built without planning/simulation)
- * Planning alarm do not kill timewarp option
+ * supports MH Launch buttons
+ * possibility to ignore SPH. Planes and trucks are built without planning/simulation.
+ * possibility to kill timewarp on the end of a simulation.
+ * possibility to enable queue of planning. 
+   New planning is added to start of the queue, other plannings shifts correspondingly in the KAC list. 
+   Same for the removing any planning from the queue. 
 
 ## Version 0.8.3
  * at least 1 decimal digit
