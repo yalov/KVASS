@@ -327,7 +327,7 @@ namespace KVASSNS
 
             // HighLogic.CurrentGame.editorFacility
  
-            if (false)
+            if (true)
             {
 
                 SpaceCenterFacility sph = SpaceCenterFacility.SpaceplaneHangar;
@@ -347,19 +347,18 @@ namespace KVASSNS
                 CraftWithinSizeLimits sizetest      =     new CraftWithinSizeLimits(ship, rw,  psl);
                 CraftWithinMassLimits masstest      =     new CraftWithinMassLimits(ship, rw,  mass);
 
-                if (!partcount.Test()) {
-              //      fail_messages.Add("SPH Part Count Test");
+                if (!partcount.Test())
+                {
                 }
                 if (!sizetest.Test())
                 {
-             //       fail_messages.Add("SPH Size Test");
                 }
                 if (!masstest.Test())
                 {
-             //       fail_messages.Add("SPH Mass Test");
                 }
             }
-            else if (true)
+            ////!!!!!!!!!!!!!!!!!!!!!////
+            if (true)
             {
                 SpaceCenterFacility vab = SpaceCenterFacility.VehicleAssemblyBuilding;
                 SpaceCenterFacility lp = SpaceCenterFacility.LaunchPad;
@@ -388,7 +387,10 @@ namespace KVASSNS
 
                     fail_messages.Add(new Tuple<string, string>(
                         Localizer.Format("#autoLOC_250727"),
-                        Localizer.Format("#autoLOC_250732", Editor_Desc, PartsCountLimit)
+                            //Localizer.Format("#autoLOC_250732", Editor_Desc, PartsCountLimit)
+                            String.Format("{0} {1:F1} [{2} {3:F1}]\n",
+                            Localizer.Format("#autoLOC_443352"), ship.Parts.Count,
+                            Localizer.Format("#autoLOC_6001000"), PartsCountLimit)
                     ));
 
 
@@ -400,51 +402,60 @@ namespace KVASSNS
                     //#autoLOC_443419 = Width:
                     //#autoLOC_443420 = Length:
                     //#autoLOC_6001000 = Max.
+                    //#autoLOC_482578 = Size: <<1>>m
+                    //# autoLOC_482486 = <<1>>m
 
 
                     float width = ship.shipSize.x;
                     float height = ship.shipSize.y;
                     float length = ship.shipSize.z;
-                    float diameter = Math.Max(ship.shipSize.x, ship.shipSize.z);
 
                     float max_width = SizeLimit.x;
                     float max_height = SizeLimit.y;
                     float max_length = SizeLimit.z;
-                    float max_diameter = Math.Max(SizeLimit.x, SizeLimit.z);
 
                     string message1 = Localizer.Format("#autoLOC_250793", launchsite_display);
-                    string message = "";
+                    string message2 = "";
                     //  Height: 9.9 [Max. 5.5]
 
                     if (height > max_height)
-                        message += String.Format("{0} {1:F1} [{2} {3:F1}]\n",
-                            Localizer.Format("#autoLOC_443418"), height,
-                            Localizer.Format("#autoLOC_6001000"), max_height);
+                        message2 += String.Format("{0} {1} [{2} {3}]\n",
+                            Localizer.Format("#autoLOC_443418"), Localizer.Format("#autoLOC_482486", height.ToString("F1")),
+                            Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_height.ToString("F1")));
 
                     if (width > max_width)
-                        message += String.Format("{0} {1:F1} [{2} {3:F1}]\n", 
-                            Localizer.Format("#autoLOC_443419"), width,
-                            Localizer.Format("#autoLOC_6001000"), max_width);
+                        message2 += String.Format("{0} {1} [{2} {3}]\n", 
+                            Localizer.Format("#autoLOC_443419"), Localizer.Format("#autoLOC_482486", width.ToString("F1")),
+                            Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_width.ToString("F1")));
 
                     if (length > max_length)
-                        message += String.Format("{0} {1:F1} [{2} {3:F1}]",
-                            Localizer.Format("#autoLOC_443420"), length,
-                            Localizer.Format("#autoLOC_6001000"), max_length);
+                        message2 += String.Format("{0} {1} [{2} {3}]",
+                            Localizer.Format("#autoLOC_443420"), Localizer.Format("#autoLOC_482486", length.ToString("F1")),
+                            Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_length.ToString("F1")));
 
-                    fail_messages.Add(new Tuple<string, string>( message1, message));
+                    fail_messages.Add(new Tuple<string, string>( message1, message2));
 
                 }
                 if (!masstest.Test())
                 {
                     //#autoLOC_250677 = Craft is too heavy!
                     //#autoLOC_250682 = The <<1>> can't support vessels heavier than <<2>>t.\n<<3>>'s total mass is <<4>>t.
-                    //# autoLOC_443357 = Mass:
+                    //#autoLOC_443357 = Mass:
+                    //#autoLOC_482576 = Mass: <<1>>t
+                    //# autoLOC_5050023 = <<1>>t
+                    // Масса: 9.3 т [Макс. 5.0 т]
+                    // Mass: 9.3t [Max. 5.0t]
+                    // Mass: 9.3 [Max. 5.0]
 
-        
+                    string mass = ship.GetTotalMass().ToString("F1");
+                    string massMax = MassLimit.ToString("F1");
 
                     fail_messages.Add(new Tuple<string, string>(
                         Localizer.Format("#autoLOC_250677") ,
-                        Localizer.Format("#autoLOC_250682", launchsite_display, MassLimit).Split('\n').FirstOrDefault()
+                            //Localizer.Format("#autoLOC_250682", launchsite_display, MassLimit).Split('\n').FirstOrDefault()
+                            String.Format("{0} [{1} {2}]\n",
+                            Localizer.Format("#autoLOC_482576", mass),
+                            Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_5050023", massMax))
                     ));
                 }
             }
@@ -464,8 +475,11 @@ namespace KVASSNS
                 //fail_messages.Add(Localizer.Format("#KVASS_message_out_of_service", launchsite.Replace("_", " ")));
                 //#autoLOC_253284 = <<1>> Out of Service
                 //#autoLOC_253289 = The <<1>> is not in serviceable conditions. Cannot proceed.
-
-
+                //#autoLOC_238803 = Cleanup cost: <<1>>
+                //#autoLOC_6002249 = Repair Facility
+                //#autoLOC_6002249 = Ремонт здания
+                //#autoLOC_475433 = Repair for <color=<<1>>><<2>></b></color>\n
+                //#autoLOC_475433 = Ремонтировать: <color=<<1>>><<2>></b></color>\n
 
                 fail_messages.Add(new Tuple<string, string>(
                     Localizer.Format("#autoLOC_253284", launchsite_display),
@@ -478,8 +492,6 @@ namespace KVASSNS
                 //#autoLOC_253369 = <<1>> not clear
                 //#autoLOC_253374 = <<1>> is already on the <<2>>
 
-    
-
                 fail_messages.Add(new Tuple<string, string>(
                     Localizer.Format("#autoLOC_253369", launchsite_display) ,
                     Localizer.Format("#autoLOC_253374", "Some vessel", launchsite_display)
@@ -490,11 +502,27 @@ namespace KVASSNS
             {
                 //#autoLOC_250625 = Not Enough Funds!
                 //#autoLOC_250630 = You can't afford to launch this vessel.
+                //#autoLOC_419420 = Science: <<1>>
+                //#autoLOC_419441 = Funds: <<1>>
+                //#autoLOC_419455 = <<1>> Reputation
+                //#autoLOC_419458 = Total Reputation: <<1>>
+                //#autoLOC_166271 = \nCost: <<1>>
+                //#autoLOC_223622 = Cost
+                //#autoLOC_456128 = <b>Cost: </b><<1>>  <b><<2>></b>
+                //#autoLOC_900528 = Cost
+                //#autoLOC_900529 = Mass
+                //#autoLOC_6003099 = <b>Cost:</b> <<1>>
+                //#autoLOC_6003100 = <color=#ffffff>Cost: <<1>></color>
+
+                // Mass: 9.3t [Max. 5t]
+                // Funds: 566644 [Cost: 120500]
+                // Funds: 566644 [Cost: 120500]
+
+                // Масса: 9.3 т [Макс. 5 т]
+
 
                 float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
                 double funds = Funding.Instance.Funds;
-
-    
 
                 fail_messages.Add(new Tuple<string, string>(
                     Localizer.Format("#autoLOC_250625") + " (" + GetComparingString(funds, cost) + ")",

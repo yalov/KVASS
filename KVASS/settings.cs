@@ -19,7 +19,7 @@ namespace KVASSNS
         public override bool HasPresets { get { return false; } }
 
         [GameParameters.CustomIntParameterUI("#KVASS_sim_enable")]
-        public bool Enable { get; set; } = true;
+        public bool Enable { get; private set; } = true;
 
         [GameParameters.CustomIntParameterUI("#KVASS_sim_ignore_SPH")]
         public bool IgnoreSPH { get; set; } = false;
