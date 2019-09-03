@@ -25,13 +25,6 @@ namespace KVASSNS
         static GameParameters.DifficultyParams settingsGame;
         static Regex regex;
 
-        private static string Orange(string message) => "<color=orange>" + message + "</color>"; // #ffa500ff
-        private static string OrangeAlpha(string message) => "<color=#ffa500af>" + message + "</color>";
-        private static string Red(string message) => "<color=red>" + message + "</color>";
-
-        private static string Asterix(string message, bool enclose) 
-            => (enclose?"<color=red>*</color> ":"") + message + (enclose ? " <color=red>*</color> " : "");
-
         public void Awake()
         {
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
@@ -44,7 +37,7 @@ namespace KVASSNS
 
         public void Start()
         {
-            Log("Start");
+            Log("Pouring the KVASS");
 
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASSSimSettings>();
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
@@ -57,6 +50,7 @@ namespace KVASSNS
             if (KACWrapper.APIReady && settingsPlan.Queue)
                 KACWrapper.KAC.onAlarmStateChanged += KAC_onAlarmStateChanged;
 
+
             // straight calling has problem on the first going into editor
             // GameEvents has problem later.
             // hopefully they will work together
@@ -65,69 +59,20 @@ namespace KVASSNS
             GameEvents.onEditorStarted.Add(ResetEditorLaunchButtons);
 
 
-            /*
+            
             try 
             {
-                StartCoroutine(HandleEditorButton_Coroutine());
+                StartCoroutine(ResetEditorLaunchButtons_Coroutine());
             }
-            catch
+            catch (Exception)
             {
                 Log("Cannot start coroutine");
             }
-            */
+            
 
         }
 
 
-
-        static IEnumerable<KACAlarm> GetPlanningAlarms()
-        {
-            if (!KACWrapper.APIReady) return new List<KACAlarm>();
-
-            var alarms = KACWrapper.KAC.Alarms.Where(
-                z => z.Name.StartsWith(Localizer.Format("#KVASS_plan_alarm_title_prefix"), StringComparison.Ordinal));
-
-            return alarms;
-        }
-
-        static List<KACAlarm> GetPlanningAlarmsSorted()
-        {
-            var alarms = GetPlanningAlarms();
-            return alarms.OrderBy(z => z.AlarmTime).ToList();
-        }
-
-
-        void KAC_onAlarmStateChanged(KACWrapper.KACAPI.AlarmStateChangedEventArgs e)
-        {
-            if (e.eventType == KACAlarm.AlarmStateEventsEnum.Deleted)
-            {
-                // e.alarm is still in the list
-                var deleting_alarm = e.alarm;
-                if (deleting_alarm == null || Remaining(deleting_alarm) <= 0) return;
-
-                var alarms = GetPlanningAlarmsSorted();
-
-                int del_index = alarms.FindIndex(z => z.ID == deleting_alarm.ID);
-
-                double planning_UT_start;
-
-                if (del_index == 0)
-                    planning_UT_start = HighLogic.CurrentGame.flightState.universalTime;
-                else
-                    planning_UT_start = alarms[del_index - 1].AlarmTime;
-
-                double planning_UT_end = deleting_alarm.AlarmTime;
-
-                double planningTime = planning_UT_end - planning_UT_start;
-
-                for (var i = del_index + 1; i < alarms.Count; i++)
-                {
-                    alarms[i].AlarmTime = Math.Round(alarms[i].AlarmTime - planningTime);
-                }
-
-            }
-
-        }
 
         public void OnDisable()
         {
@@ -228,7 +173,7 @@ namespace KVASSNS
                 && KACWrapper.APIReady)
             {
                 string shipName = EditorLogic.fetch.ship.shipName;
-                string alarmTitle = Localizer.Format("#KVASS_plan_alarm_title_prefix") + " " + shipName;
+                string alarmTitle = Localizer.Format("#KVASS_alarm_title_prefix") + " " + shipName;
 
                 KACAlarm alarm = GetAlarm(alarmTitle);
 
@@ -236,7 +181,6 @@ namespace KVASSNS
                 {
                     // Alarm Is Not Found, Creating
                     CreateNewAlarm(alarmTitle);
-                    PostScreenMessage(shipName + ": the planning is started\nNew alarm is created", 7);
                 }
                 else if (IsAlarmFinished(alarm))
                 {
@@ -251,7 +195,9 @@ namespace KVASSNS
                 }
                 else
                 {
-                    PostScreenMessage(Orange(shipName + ": the planning is not finished"));
+                    Messages.Add(Localizer.Format("#KVASS_alarm_not_finished", alarmTitle));
+                    Messages.ShowAndClear();
+
                 }
 
             }
@@ -282,14 +228,6 @@ namespace KVASSNS
             return String.Join("|", RegExs);
         }
 
-        static void PostScreenMessage(string message, float duration = 5.0f,
-            ScreenMessageStyle style = ScreenMessageStyle.UPPER_CENTER)
-        {
-            //var msg = new ScreenMessage(message, duration, style);
-            ScreenMessages.PostScreenMessage(message, duration, style);
-        }
-
-
         //private static void ShowDialog(string message = "You can't afford to launch this vessel.",
         //    string close_title = "Unable to Launch", float height = 100f)
         //{
@@ -304,174 +242,152 @@ namespace KVASSNS
 
 
         /// <summary>
-        /// Check Possibility to Launch, and show nessesary message on screen. 
+        /// Check Possibility to Launch, and show necessary message on screen. 
         /// Return bool possibility. 
         /// </summary>
         /// <returns></returns>
         static bool CheckLaunchingPossibility(string launchsite)
         {
             Log("launchsite: " + launchsite);
-            string launchsite_display = launchsite.Replace("_", " ");
-            
 
+            // TODO: launchsite_display
+            string launchsite_display = launchsite.Replace("_", " ");
+
+            // TODO: Science
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER)
                 return true;
 
-            List<Tuple<string, string>> fail_messages = new List<Tuple<string, string>>();
-
-            
+            //List<Tuple<string, string>> fail_messages = new List<Tuple<string, string>>();
 
             //ShipConstruct ship = ShipConstruction.LoadShip();
             ShipConstruct ship = EditorLogic.fetch.ship;
             string Editor_Desc = ship.shipFacility.displayDescription();
 
             // HighLogic.CurrentGame.editorFacility
- 
-            if (true)
+
+            // TODO: Detector isVAB, isLaunchPad
+            bool isVABAndLaunchPad = true;
+
+
+            SpaceCenterFacility EditorBuilding;
+            SpaceCenterFacility LaunchBuilding;
+
+            if (isVABAndLaunchPad)
             {
-
-                SpaceCenterFacility sph = SpaceCenterFacility.SpaceplaneHangar;
-                SpaceCenterFacility rw = SpaceCenterFacility.Runway;
-                float sph_level = ScenarioUpgradeableFacilities.GetFacilityLevel(sph);
-                float rw_level = ScenarioUpgradeableFacilities.GetFacilityLevel(rw);
-
-                int pcl = GameVariables.Instance.GetPartCountLimit(sph_level, false);
-                Vector3 psl = GameVariables.Instance.GetCraftSizeLimit(rw_level, false);
-                double mass = (double)GameVariables.Instance.GetCraftMassLimit(rw_level, false);
-
-                Log("SPH PartCountLimit: " + pcl);
-                Log("SPH CraftSizeLimit: " + psl);
-                Log("SPH CraftMassLimit: " + mass);
-
-                CraftWithinPartCountLimit partcount = new CraftWithinPartCountLimit(ship, sph, pcl);
-                CraftWithinSizeLimits sizetest      =     new CraftWithinSizeLimits(ship, rw,  psl);
-                CraftWithinMassLimits masstest      =     new CraftWithinMassLimits(ship, rw,  mass);
-
-                if (!partcount.Test())
-                {
-                }
-                if (!sizetest.Test())
-                {
-                }
-                if (!masstest.Test())
-                {
-                }
-            }
-            ////!!!!!!!!!!!!!!!!!!!!!////
-            if (true)
-            {
-                SpaceCenterFacility vab = SpaceCenterFacility.VehicleAssemblyBuilding;
-                SpaceCenterFacility lp = SpaceCenterFacility.LaunchPad;
-                float vab_level = ScenarioUpgradeableFacilities.GetFacilityLevel(vab);
-                float lp_level = ScenarioUpgradeableFacilities.GetFacilityLevel(lp);
-
-                int PartsCountLimit = GameVariables.Instance.GetPartCountLimit(vab_level, true);
-                Vector3 SizeLimit = GameVariables.Instance.GetCraftSizeLimit(lp_level, true);
-                double MassLimit = (double)GameVariables.Instance.GetCraftMassLimit(lp_level, true);
-
-                Log("VAB PartCountLimit: " + PartsCountLimit);
-                Log("VAB CraftSizeLimit: " + SizeLimit);
-                Log("VAB CraftMassLimit: " + MassLimit);
-
-                CraftWithinPartCountLimit partcount = new CraftWithinPartCountLimit(ship, vab, PartsCountLimit);
-                CraftWithinSizeLimits sizetest      = new CraftWithinSizeLimits(ship, lp, SizeLimit);
-                CraftWithinMassLimits masstest      = new CraftWithinMassLimits(ship, lp, MassLimit);
-
-                if (!partcount.Test())
-                {
-                    //#autoLOC_250727 = Craft has too many parts!
-                    //#autoLOC_250732 = The <<1>> can't support vessels over <<2>> parts.
-                    //#autoLOC_443352 = Parts:
-                    //#autoLOC_6001000 = Max.
-
-
-                    fail_messages.Add(new Tuple<string, string>(
-                        Localizer.Format("#autoLOC_250727"),
-                            //Localizer.Format("#autoLOC_250732", Editor_Desc, PartsCountLimit)
-                            String.Format("{0} {1:F1} [{2} {3:F1}]\n",
-                            Localizer.Format("#autoLOC_443352"), ship.Parts.Count,
-                            Localizer.Format("#autoLOC_6001000"), PartsCountLimit)
-                    ));
-
-
-                }
-                if (!sizetest.Test())
-                {
-                    //#autoLOC_250793 = Craft is too large for <<1>>!
-                    //#autoLOC_443418 = Height:
-                    //#autoLOC_443419 = Width:
-                    //#autoLOC_443420 = Length:
-                    //#autoLOC_6001000 = Max.
-                    //#autoLOC_482578 = Size: <<1>>m
-                    //# autoLOC_482486 = <<1>>m
-
-
-                    float width = ship.shipSize.x;
-                    float height = ship.shipSize.y;
-                    float length = ship.shipSize.z;
-
-                    float max_width = SizeLimit.x;
-                    float max_height = SizeLimit.y;
-                    float max_length = SizeLimit.z;
-
-                    string message1 = Localizer.Format("#autoLOC_250793", launchsite_display);
-                    string message2 = "";
-                    //  Height: 9.9 [Max. 5.5]
-
-                    if (height > max_height)
-                        message2 += String.Format("{0} {1} [{2} {3}]\n",
-                            Localizer.Format("#autoLOC_443418"), Localizer.Format("#autoLOC_482486", height.ToString("F1")),
-                            Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_height.ToString("F1")));
-
-                    if (width > max_width)
-                        message2 += String.Format("{0} {1} [{2} {3}]\n", 
-                            Localizer.Format("#autoLOC_443419"), Localizer.Format("#autoLOC_482486", width.ToString("F1")),
-                            Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_width.ToString("F1")));
-
-                    if (length > max_length)
-                        message2 += String.Format("{0} {1} [{2} {3}]",
-                            Localizer.Format("#autoLOC_443420"), Localizer.Format("#autoLOC_482486", length.ToString("F1")),
-                            Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_length.ToString("F1")));
-
-                    fail_messages.Add(new Tuple<string, string>( message1, message2));
-
-                }
-                if (!masstest.Test())
-                {
-                    //#autoLOC_250677 = Craft is too heavy!
-                    //#autoLOC_250682 = The <<1>> can't support vessels heavier than <<2>>t.\n<<3>>'s total mass is <<4>>t.
-                    //#autoLOC_443357 = Mass:
-                    //#autoLOC_482576 = Mass: <<1>>t
-                    //# autoLOC_5050023 = <<1>>t
-                    // Масса: 9.3 т [Макс. 5.0 т]
-                    // Mass: 9.3t [Max. 5.0t]
-                    // Mass: 9.3 [Max. 5.0]
-
-                    string mass = ship.GetTotalMass().ToString("F1");
-                    string massMax = MassLimit.ToString("F1");
-
-                    fail_messages.Add(new Tuple<string, string>(
-                        Localizer.Format("#autoLOC_250677") ,
-                            //Localizer.Format("#autoLOC_250682", launchsite_display, MassLimit).Split('\n').FirstOrDefault()
-                            String.Format("{0} [{1} {2}]\n",
-                            Localizer.Format("#autoLOC_482576", mass),
-                            Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_5050023", massMax))
-                    ));
-                }
+                EditorBuilding = SpaceCenterFacility.VehicleAssemblyBuilding;
+                LaunchBuilding = SpaceCenterFacility.LaunchPad;
             }
             else
             {
-               // fail_messages.Add("Failed to lauch vessel, unrecognized lauch site. Disable KVASS in the settings.");
+                EditorBuilding = SpaceCenterFacility.SpaceplaneHangar;
+                LaunchBuilding = SpaceCenterFacility.Runway;
             }
 
+            float eb_level = ScenarioUpgradeableFacilities.GetFacilityLevel(EditorBuilding);
+            float lb_level = ScenarioUpgradeableFacilities.GetFacilityLevel(LaunchBuilding);
 
+            
+
+
+            int PartsCountLimit = GameVariables.Instance.GetPartCountLimit(eb_level, isVABAndLaunchPad);
+            Vector3 SizeLimit = GameVariables.Instance.GetCraftSizeLimit(lb_level, isVABAndLaunchPad);
+            double MassLimit = (double)GameVariables.Instance.GetCraftMassLimit(lb_level, isVABAndLaunchPad);
+
+            Log("PartCountLimit: " + PartsCountLimit);
+            Log("CraftSizeLimit: " + SizeLimit);
+            Log("CraftMassLimit: " + MassLimit);
+
+            CraftWithinPartCountLimit partcount = new CraftWithinPartCountLimit(ship, EditorBuilding, PartsCountLimit);
+            CraftWithinSizeLimits sizetest      = new CraftWithinSizeLimits(ship, LaunchBuilding, SizeLimit);
+            CraftWithinMassLimits masstest      = new CraftWithinMassLimits(ship, LaunchBuilding, MassLimit);
             CanAffordLaunchTest fundsCheck = new CanAffordLaunchTest(ship, Funding.Instance);
             FacilityOperational opCheck = new FacilityOperational(launchsite, launchsite);
             LaunchSiteClear clearCheck = new LaunchSiteClear(launchsite, launchsite, HighLogic.CurrentGame);
 
+            //#autoLOC_6001000 = Max.
+
+            if (!partcount.Test())
+            {
+                //#autoLOC_250727 = Craft has too many parts!
+                //#autoLOC_250732 = The <<1>> can't support vessels over <<2>> parts.
+                //#autoLOC_443352 = Parts:
+
+                Messages.Add(
+                    Localizer.Format("#autoLOC_250727"),
+                    String.Format("{0} {1} [{2} {3}]\n",
+                        Localizer.Format("#autoLOC_443352"), ship.Parts.Count,
+                        Localizer.Format("#autoLOC_6001000"), PartsCountLimit
+                    )
+                );
+            }
+
+            if (!sizetest.Test())
+            {
+                //#autoLOC_250793 = Craft is too large for <<1>>!
+                //#autoLOC_443418 = Height:
+                //#autoLOC_443419 = Width:
+                //#autoLOC_443420 = Length:
+                //#autoLOC_482578 = Size: <<1>>m
+                //# autoLOC_482486 = <<1>>m
+                //  Height: 9.9 [Max. 5.5]
+
+                float width = ship.shipSize.x;
+                float height = ship.shipSize.y;
+                float length = ship.shipSize.z;
+
+                float max_width = SizeLimit.x;
+                float max_height = SizeLimit.y;
+                float max_length = SizeLimit.z;
+
+                string message1 = Localizer.Format("#autoLOC_250793", launchsite_display);
+                string message2 = "";
+
+                if (height > max_height)
+                    message2 += String.Format("{0} {1} [{2} {3}]\n",
+                        Localizer.Format("#autoLOC_443418"), Localizer.Format("#autoLOC_482486", height.ToString("F1")),
+                        Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_height.ToString("F1")));
+
+                if (width > max_width)
+                    message2 += String.Format("{0} {1} [{2} {3}]\n", 
+                        Localizer.Format("#autoLOC_443419"), Localizer.Format("#autoLOC_482486", width.ToString("F1")),
+                        Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_width.ToString("F1")));
+
+                if (length > max_length)
+                    message2 += String.Format("{0} {1} [{2} {3}]",
+                        Localizer.Format("#autoLOC_443420"), Localizer.Format("#autoLOC_482486", length.ToString("F1")),
+                        Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_length.ToString("F1")));
+
+                Messages.Add( message1, message2);
+            }
+
+            if (!masstest.Test())
+            {
+                //#autoLOC_250677 = Craft is too heavy!
+                //#autoLOC_250682 = The <<1>> can't support vessels heavier than <<2>>t.\n<<3>>'s total mass is <<4>>t.
+                //#autoLOC_443357 = Mass:
+                //#autoLOC_900529 = Mass
+                //#autoLOC_482576 = Mass: <<1>>t
+                //#autoLOC_5050023 = <<1>>t
+                // Масса: 9.3 т [Макс. 5.0 т]
+                // Mass: 9.3t [Max. 5.0t]
+
+                string format = GetComparingFormat(ship.GetTotalMass(), MassLimit);
+
+                string mass = ship.GetTotalMass().ToString(format);
+                string massMax = MassLimit.ToString(format);
+
+                Messages.Add(
+                    Localizer.Format("#autoLOC_250677") ,
+                    String.Format("{0} [{1} {2}]\n",
+                        Localizer.Format("#autoLOC_482576", mass),
+                        Localizer.Format("#autoLOC_6001000"), 
+                        Localizer.Format("#autoLOC_5050023", massMax)
+                    )
+                );
+            }
+  
             if (!opCheck.Test())
             {
-
                 //fail_messages.Add(Localizer.Format("#KVASS_message_out_of_service", launchsite.Replace("_", " ")));
                 //#autoLOC_253284 = <<1>> Out of Service
                 //#autoLOC_253289 = The <<1>> is not in serviceable conditions. Cannot proceed.
@@ -481,10 +397,24 @@ namespace KVASSNS
                 //#autoLOC_475433 = Repair for <color=<<1>>><<2>></b></color>\n
                 //#autoLOC_475433 = Ремонтировать: <color=<<1>>><<2>></b></color>\n
 
-                fail_messages.Add(new Tuple<string, string>(
+                List<DestructibleBuilding> destructibles = new List<DestructibleBuilding>();
+                foreach (KeyValuePair<string, ScenarioDestructibles.ProtoDestructible> kvp in ScenarioDestructibles.protoDestructibles)
+                {
+                    if (kvp.Key.Contains("LaunchPad"))
+                    {
+                        destructibles.AddRange(kvp.Value.dBuildingRefs);
+                    }
+                }
+
+                foreach (DestructibleBuilding facility in destructibles)
+                {
+                    Log(facility.name+" repair: " +facility.RepairCost);
+                }
+
+                Messages.Add(
                     Localizer.Format("#autoLOC_253284", launchsite_display),
                     Localizer.Format("#autoLOC_253289", launchsite_display).Split('.').FirstOrDefault()
-                ));
+                );
             }
 
             if (!clearCheck.Test())
@@ -492,10 +422,10 @@ namespace KVASSNS
                 //#autoLOC_253369 = <<1>> not clear
                 //#autoLOC_253374 = <<1>> is already on the <<2>>
 
-                fail_messages.Add(new Tuple<string, string>(
-                    Localizer.Format("#autoLOC_253369", launchsite_display) ,
-                    Localizer.Format("#autoLOC_253374", "Some vessel", launchsite_display)
-                ));
+                Messages.Add(
+                    Localizer.Format("#autoLOC_253369", launchsite_display)
+                );
+                //Localizer.Format("#autoLOC_253374", "Some vessel", launchsite_display)
             }
 
             if (!fundsCheck.Test())
@@ -508,53 +438,33 @@ namespace KVASSNS
                 //#autoLOC_419458 = Total Reputation: <<1>>
                 //#autoLOC_166271 = \nCost: <<1>>
                 //#autoLOC_223622 = Cost
-                //#autoLOC_456128 = <b>Cost: </b><<1>>  <b><<2>></b>
                 //#autoLOC_900528 = Cost
-                //#autoLOC_900529 = Mass
                 //#autoLOC_6003099 = <b>Cost:</b> <<1>>
-                //#autoLOC_6003100 = <color=#ffffff>Cost: <<1>></color>
-
-                // Mass: 9.3t [Max. 5t]
                 // Funds: 566644 [Cost: 120500]
-                // Funds: 566644 [Cost: 120500]
-
-                // Масса: 9.3 т [Макс. 5 т]
-
 
                 float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
                 double funds = Funding.Instance.Funds;
 
-                fail_messages.Add(new Tuple<string, string>(
-                    Localizer.Format("#autoLOC_250625") + " (" + GetComparingString(funds, cost) + ")",
-                    Localizer.Format("#autoLOC_250630")
-                ));
+                Messages.Add(
+                    Localizer.Format("#autoLOC_250625"),
+                    String.Format("{0} [{1}]\n",
+                        Localizer.Format("#autoLOC_419441", funds),
+                        Localizer.Format("#autoLOC_6003099", cost)
+                    )
+                );
             }            
 
-            string paragraph_prefix = Localizer.Format("#KVASS_message_paragraph_prefix");  // "* ";
+            int count = Messages.Count();
 
-            //for (int i = 0; i < fail_messages.Count; i++)
-            //    PostScreenMessage(
-            //            (fail_messages.Count > 1 ? Red(paragraph_prefix): "") + Orange(fail_messages[i]), 
-            //            5 * (i+1));
+            Messages.ShowAndClear();
 
-            //if (fail_messages.Count > 1)
-            //    PostScreenMessage(Localizer.Format("#KVASS_message_total", fail_messages.Count),
-            //        fail_messages.Count+1 * 5.0f);
+            if (count > 1)
+            {
+                Messages.Add(Localizer.Format("#KVASS_message_total", count));
+                Messages.ShowAndClear(seconds: (count + 1) * 5);
+            }
 
-
-            for (int i = 0; i < fail_messages.Count; i++)
-                PostScreenMessage(
-                    Asterix(Orange(fail_messages[i].Item1), fail_messages.Count > 1)
-                        +"\n" + fail_messages[i].Item2,
-                    5 * (i + 1)
-                );
-
-            if (fail_messages.Count > 1)
-                PostScreenMessage(Orange(Localizer.Format("#KVASS_message_total", fail_messages.Count)),
-                    (fail_messages.Count + 1) * 5);
-
-            return (fail_messages.Count == 0); // success
-
+            return (count == 0); // success
         }
 
 
@@ -573,6 +483,8 @@ namespace KVASSNS
 
                 if (simulCost == 0) return true;
 
+
+
                 if (Funding.Instance.Funds >= shipCost + simulCost)
                 {
                     Funding.Instance.AddFunds(-simulCost, TransactionReasons.VesselRollout);
@@ -580,17 +492,22 @@ namespace KVASSNS
                 }
                 else
                 {
-                    double diff = Math.Abs(shipCost + simulCost - Funding.Instance.Funds);
-                    double diffLog = Math.Log10(diff);
-                    string format = (diffLog > 0) ? "F0" : "F" + Math.Ceiling(-diffLog);
+                    //#autoLOC_419441 = Funds: <<1>>
+                    //#autoLOC_900528 = Cost
 
-                    string message = Localizer.Format("#KVASS_message_not_enough_funds_to_sim",
-                    GetComparingString(Funding.Instance.Funds, shipCost, simulCost));
+                    string format = GetComparingFormat(Funding.Instance.Funds, shipCost, simulCost);
 
-                    //+ Funding.Instance.Funds.ToString(format) + " < " +
-                    //shipCost.ToString(format) + " + " + simulCost.ToString(format);
+                    Messages.Add(
+                        Localizer.Format("#KVASS_message_not_enough_funds_to_sim"),
+                        String.Format("{0} [{1}: {2}+{3}]\n",
+                            Localizer.Format("#autoLOC_419441", Funding.Instance.Funds),
+                            Localizer.Format("#autoLOC_900528"), 
+                            shipCost.ToString(format), 
+                            simulCost.ToString(format)
+                        )
+                    );
 
-                    PostScreenMessage(Orange(message));
+                    Messages.ShowAndClear();
 
                     return false;
                 }
@@ -612,45 +529,64 @@ namespace KVASSNS
                 }
                 else
                 {
-                    
+                    //#autoLOC_419420 = Science: <<1>>
+                    //#autoLOC_900528 = Cost
 
-                    double diff = Math.Abs(science_points - ResearchAndDevelopment.Instance.Science);
-                    double diffLog = Math.Log10(diff);
-                    string format = (diffLog > 0) ? "F1" : "F" + Math.Ceiling(-diffLog);
+                    string format = GetComparingFormat(ResearchAndDevelopment.Instance.Science, science_points);
 
-                    string message = Localizer.Format("#KVASS_message_not_enough_sci_to_sim",
-                        GetComparingString(ResearchAndDevelopment.Instance.Science, science_points));
+                    Messages.Add(
+                        Localizer.Format("#KVASS_message_not_enough_sci_to_sim"),
+                        String.Format("{0} [{1}: {2}]\n",
+                            Localizer.Format("#autoLOC_419420", ResearchAndDevelopment.Instance.Science),
+                            Localizer.Format("#autoLOC_900528"),
+                            science_points.ToString(format)
+                        )
+                    );
 
-                    //ResearchAndDevelopment.Instance.Science.ToString(format) + " < " + science_points.ToString(format);
-
-                    PostScreenMessage(Orange(message));
+                    Messages.ShowAndClear();
 
                     return false;
                 }
             }
         }
+
         /// <summary>
-        /// Get a comparing string with nessesary digits:
-        /// value (<|>|=) summator1 + ... + summatorN
+        /// Get a precision format for comparing string with the least digits.
+        /// Example: value: 12.04, addends: 3.01, 9.02
+        /// returns "F2";
         /// </summary>
         /// <param name="value"></param>
-        /// <param name="summators"></param>
+        /// <param name="addends"></param>
         /// <returns></returns>
-        static string GetComparingString(double value,params double[] summators)
+        static string GetComparingFormat(double value, params double[] addends)
         {
-            if (summators.Length == 0) return "";
+            if (addends.Length == 0) return "";
+            const double Eps = 1e-10;
 
-            double sum = summators.Sum();
+            double sum = addends.Sum();
+            double diff = sum - value;
+            double diff_abs = Math.Abs(diff);
 
-            double diff = Math.Abs(sum - value);
-            double diffLog = Math.Log10(diff);
-            string format = (diffLog > 0) ? "F0" : "F" + Math.Ceiling(-diffLog);
+            if (diff_abs < Eps) return "";
 
-            string equality = (value < sum ? " < " : (value > sum ? " > " : " = "));
+            int i = 0;
+            const int maxFracDigits = 8;
 
-            return value.ToString(format, CultureInfo.InvariantCulture) + equality + 
-                String.Join(" + ", summators.Select(d => d.ToString(format, CultureInfo.InvariantCulture)).ToArray());
+            for (double diff_rounded_abs = 0; i < maxFracDigits; i++)
+            {
+                double sum_rounded = addends.Select(z => Math.Round(z, i)).Sum();
+                double value_rounded = Math.Round(value, i);
+                double diff_rounded = sum_rounded - value_rounded;
+                diff_rounded_abs = Math.Abs(diff_rounded);
+
+                if (diff_rounded_abs > Eps
+                        && Math.Sign(diff_rounded) == Math.Sign(diff))
+                    return "F" + i;
+            }
+
+            return "";
         }
+
 
         static string CreateNewAlarm(string title)
         {
@@ -674,7 +610,7 @@ namespace KVASSNS
 
                     // a.Remaining doesn't work in the VAB/SPH
 
-                    alarm.Notes = Localizer.Format("#KVASS_plan_message_alarm");
+                    alarm.Notes = Localizer.Format("#KVASS_alarm_note");
                     alarm.AlarmMargin = 0;
 
                     if (settingsPlan.KillTimeWarp)
@@ -682,15 +618,32 @@ namespace KVASSNS
                     else
                         alarm.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.DoNothing;
 
+
+                    Messages.QuickPost(Localizer.Format("#KVASS_alarm_created", title), 7);
+
                     if (settingsPlan.Queue)
                     {
-                        var alarms = GetPlanningAlarms();
+                        var alarms = GetPlanningActiveAlarms();
+                        int alarmsMoved = 0;
+                        string firstName = "";
 
                         foreach (var a in alarms)
                         {
-                            if (Remaining(a) > 0 && a.ID != aID)
+                            if (a.ID != aID)
+                            {
                                 a.AlarmTime = Math.Round(a.AlarmTime + time);
+                                alarmsMoved++;
+                                if (alarmsMoved == 1) firstName = a.Name;
+                            }
                         }
+
+                        if (alarmsMoved == 1)
+                        {
+                            firstName = firstName.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
+                            Messages.QuickPost(Localizer.Format("#KVASS_alarm_created_another", firstName));
+                        }
+                        else if (alarmsMoved > 1)
+                            Messages.QuickPost(Localizer.Format("#KVASS_alarm_created_others", alarmsMoved));
                     }
                 }
             }
@@ -811,6 +764,75 @@ namespace KVASSNS
 
             Log("KAC is not found");
             return false;
+        }
+
+
+
+
+        static IEnumerable<KACAlarm> GetPlanningActiveAlarms()
+        {
+            if (!KACWrapper.APIReady) return new List<KACAlarm>();
+
+            var alarms = KACWrapper.KAC.Alarms.Where(
+                    a => Remaining(a) > 0 &&
+                    a.Name.StartsWith(Localizer.Format("#KVASS_alarm_title_prefix"), StringComparison.Ordinal)
+                    );
+                
+            return alarms;
+        }
+
+        static List<KACAlarm> GetPlanningActiveAlarmsSorted()
+        {
+            var alarms = GetPlanningActiveAlarms();
+            return alarms.OrderBy(z => z.AlarmTime).ToList();
+        }
+
+
+        void KAC_onAlarmStateChanged(KACWrapper.KACAPI.AlarmStateChangedEventArgs e)
+        {
+            if (e.eventType == KACAlarm.AlarmStateEventsEnum.Deleted)
+            {
+                // e.alarm is still in the list
+                var deleting_alarm = e.alarm;
+                if (deleting_alarm == null || Remaining(deleting_alarm) <= 0) return;
+
+                var alarms = GetPlanningActiveAlarmsSorted();
+
+                int del_index = alarms.FindIndex(z => z.ID == deleting_alarm.ID);
+
+                double planning_UT_start;
+
+                if (del_index == 0)
+                    planning_UT_start = HighLogic.CurrentGame.flightState.universalTime;
+                else
+                    planning_UT_start = alarms[del_index - 1].AlarmTime;
+
+                double planning_UT_end = deleting_alarm.AlarmTime;
+
+                double planningTime = planning_UT_end - planning_UT_start;
+
+
+                for (var i = del_index + 1; i < alarms.Count; i++)
+                {
+                    alarms[i].AlarmTime = Math.Round(alarms[i].AlarmTime - planningTime);
+                }
+
+                int alarmsMoved = alarms.Count - (del_index+1);
+
+                Messages.QuickPost(Localizer.Format("#KVASS_alarm_deleted"));
+
+                if (alarmsMoved == 1)
+                {
+                    string firstName = alarms[del_index + 1].Name;
+                    firstName = firstName.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
+
+                    Messages.QuickPost(Localizer.Format("#KVASS_alarm_deleted_another", firstName));
+                }
+                else if (alarmsMoved > 1)
+                    Messages.QuickPost(Localizer.Format("#KVASS_alarm_deleted_others", alarmsMoved));
+
+            }
+
         }
     }
 }
