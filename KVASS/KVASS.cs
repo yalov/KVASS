@@ -25,6 +25,8 @@ namespace KVASSNS
         static GameParameters.DifficultyParams settingsGame;
         static Regex regex;
 
+        private IEnumerator coroutine;
+
         public void Awake()
         {
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
@@ -59,11 +61,13 @@ namespace KVASSNS
             GameEvents.onEditorStarted.Add(ResetEditorLaunchButtons);
 
 
-            
+            Log("before try to start coroutine");
+
             try 
             {
+                coroutine = ResetEditorLaunchButtons_Coroutine();
                 Log("try to start coroutine");
-                StartCoroutine(ResetEditorLaunchButtons_Coroutine());
+                StartCoroutine(coroutine);
             }
             catch (Exception)
             {
@@ -103,7 +107,7 @@ namespace KVASSNS
         }
 
 
-        static void ResetEditorLaunchButtons()
+        void ResetEditorLaunchButtons()
         {
             Log("Chug! Chug! Chug!");
             //Log("ResetEditorLaunchButtons");
@@ -116,20 +120,24 @@ namespace KVASSNS
             greenButton.onClick.RemoveAllListeners();
             greenButton.onClick.AddListener(() => { LaunchListener(null); });
 
+            Log("Green AddListener");
+
+
             if (settingsGame.AllowOtherLaunchSites)
             {
                 UILaunchsiteController controller = UnityEngine.Object.FindObjectOfType<UILaunchsiteController>();
                 if (controller == null)
                 {
-                    //Log("ResetEditorLaunchButtons: Controller is null");
+                    Log("ResetEditorLaunchButtons: Controller is null");
                     return;
                 }
 
-                //Log("ResetEditorLaunchButtons: Controller is OK");
+                Log("ResetEditorLaunchButtons: Controller is OK");
 
 
                 object items = controller.GetType()?.GetPrivateMemberValue("launchPadItems", controller, 4);
 
+                Log("ResetEditorLaunchButtons: items");
 
                 //object items2 = controller.GetType()?.GetPrivateMemberValue("runWayItems", controller, 4);
 
