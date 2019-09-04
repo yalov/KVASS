@@ -1,18 +1,18 @@
 ChangeLog:
 
-## Version 0.9.0
+## Version 0.9.0 (unreleased)
  * supports MH Launch buttons
  * possibility to ignore SPH. Planes and trucks are built without planning/simulation.
- * possibility to kill timewarp on the end of a simulation.
- * possibility to enable queue of planning. 
-   New planning is added to start of the queue, other plannings shifts correspondingly in the KAC list. 
-   Same for the removing any planning from the queue. 
+ * possibility to kill time-warp on the end of a simulation.
+ * possibility to enable queue of planning:
+   New planning is added to start of the queue, other timers delayed correspondingly in the KAC list. 
+   Removing any planning from the queue will shift following timers
 
 ## Version 0.8.3
  * at least 1 decimal digit
    in the science warning message
  * lower default sci-cost in the science mode
- * clearify text and settings
+ * clearing text and settings
 
 ## Version 0.8.2
  * renamed to the KVASS

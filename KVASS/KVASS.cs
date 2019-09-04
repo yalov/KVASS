@@ -37,13 +37,13 @@ namespace KVASSNS
 
         public void Start()
         {
-            Log("Pouring the KVASS");
+            Log("Pouring...");
 
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASSSimSettings>();
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
             settingsGame = HighLogic.CurrentGame.Parameters.Difficulty;
 
-            regex = new Regex(LoadRegExpPattern());
+            regex = new Regex(LoadRegExpPattern(), RegexOptions.IgnoreCase);
 
             KACWrapper.InitKACWrapper();
 
@@ -62,6 +62,7 @@ namespace KVASSNS
             
             try 
             {
+                Log("try to start coroutine");
                 StartCoroutine(ResetEditorLaunchButtons_Coroutine());
             }
             catch (Exception)
@@ -86,8 +87,10 @@ namespace KVASSNS
         /// <returns></returns>
         IEnumerator ResetEditorLaunchButtons_Coroutine()
         {
+            Log("Coroutine()");
             while (true)
             {
+                Log("Coroutine()");
                 ResetEditorLaunchButtons();
                 yield return new WaitForSeconds(0.5f);
             }
@@ -102,6 +105,7 @@ namespace KVASSNS
 
         static void ResetEditorLaunchButtons()
         {
+            Log("Chug! Chug! Chug!");
             //Log("ResetEditorLaunchButtons");
             //UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent();
             //c.AddListener(OnLoadClick);
@@ -126,11 +130,20 @@ namespace KVASSNS
 
                 object items = controller.GetType()?.GetPrivateMemberValue("launchPadItems", controller, 4);
 
+
+                //object items2 = controller.GetType()?.GetPrivateMemberValue("runWayItems", controller, 4);
+
                 // the private member "launchPadItems" is a list, and if it is null, then it is
                 // not castable to a IEnumerable
                 if (items == null) return;
-
                 IEnumerable list = items as IEnumerable;
+                //int i = 0; foreach (object site in list) { i++; }; Log("launchPadItems: " + i);
+                
+
+
+                //if (items2 == null) return;
+                //IEnumerable list2 = items2 as IEnumerable;
+                //i = 0; foreach (object site in list2) { i++; }; Log("runWayItems: " + i);
 
                 foreach (object site in list)
                 {
@@ -190,7 +203,7 @@ namespace KVASSNS
 
                     // even if checks_succeed is false, launching will be interrupted by KSP.
                     // CheckLaunchingPossibility needed for not removing alarm if launch will be failed
-                    Log("KVASS launches now!");
+                    Log("launchVessel now!");
                     EditorLogic.fetch.launchVessel(launchSite);
                 }
                 else
@@ -212,7 +225,7 @@ namespace KVASSNS
 
         static string LoadRegExpPattern()
         {
-            string[] RegExs = { "^.?[Tt]est" };
+            string[] RegExs = { "^.?test" };
 
             ConfigNode[] configs = GameDatabase.Instance.GetConfigNodes("KVASS");
 
@@ -243,12 +256,11 @@ namespace KVASSNS
 
         /// <summary>
         /// Check Possibility to Launch, and show necessary message on screen. 
-        /// Return bool possibility. 
         /// </summary>
         /// <returns></returns>
         static bool CheckLaunchingPossibility(string launchsite)
         {
-            Log("launchsite: " + launchsite);
+            Log("Launch Site: " + launchsite);
 
             // TODO: launchsite_display
             string launchsite_display = launchsite.Replace("_", " ");
@@ -257,16 +269,21 @@ namespace KVASSNS
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER)
                 return true;
 
-            //List<Tuple<string, string>> fail_messages = new List<Tuple<string, string>>();
-
             //ShipConstruct ship = ShipConstruction.LoadShip();
             ShipConstruct ship = EditorLogic.fetch.ship;
-            string Editor_Desc = ship.shipFacility.displayDescription();
 
-            // HighLogic.CurrentGame.editorFacility
 
-            // TODO: Detector isVAB, isLaunchPad
-            bool isVABAndLaunchPad = true;
+            // !!!!!!!!!!!!!!!!
+            // Detector isVAB ?
+            // Detector isLaunchPad ? 
+            // launchsite -> SpaceCenterFacility
+            // launchsite -> launchsite_display
+
+            bool isVABAndLaunchPad = EditorDriver.editorFacility.Equals(EditorFacility.VAB);
+
+            //ship.shipFacility == EditorFacility.VAB;
+
+            Log("isVABAndLaunchPad: "+isVABAndLaunchPad);
 
 
             SpaceCenterFacility EditorBuilding;
@@ -285,9 +302,6 @@ namespace KVASSNS
 
             float eb_level = ScenarioUpgradeableFacilities.GetFacilityLevel(EditorBuilding);
             float lb_level = ScenarioUpgradeableFacilities.GetFacilityLevel(LaunchBuilding);
-
-            
-
 
             int PartsCountLimit = GameVariables.Instance.GetPartCountLimit(eb_level, isVABAndLaunchPad);
             Vector3 SizeLimit = GameVariables.Instance.GetCraftSizeLimit(lb_level, isVABAndLaunchPad);
@@ -327,9 +341,7 @@ namespace KVASSNS
                 //#autoLOC_443418 = Height:
                 //#autoLOC_443419 = Width:
                 //#autoLOC_443420 = Length:
-                //#autoLOC_482578 = Size: <<1>>m
-                //# autoLOC_482486 = <<1>>m
-                //  Height: 9.9 [Max. 5.5]
+                //#autoLOC_482486 = <<1>>m
 
                 float width = ship.shipSize.x;
                 float height = ship.shipSize.y;
@@ -353,7 +365,7 @@ namespace KVASSNS
                         Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_width.ToString("F1")));
 
                 if (length > max_length)
-                    message2 += String.Format("{0} {1} [{2} {3}]",
+                    message2 += String.Format("{0} {1} [{2} {3}]\n",
                         Localizer.Format("#autoLOC_443420"), Localizer.Format("#autoLOC_482486", length.ToString("F1")),
                         Localizer.Format("#autoLOC_6001000"), Localizer.Format("#autoLOC_482486", max_length.ToString("F1")));
 
@@ -364,12 +376,8 @@ namespace KVASSNS
             {
                 //#autoLOC_250677 = Craft is too heavy!
                 //#autoLOC_250682 = The <<1>> can't support vessels heavier than <<2>>t.\n<<3>>'s total mass is <<4>>t.
-                //#autoLOC_443357 = Mass:
-                //#autoLOC_900529 = Mass
                 //#autoLOC_482576 = Mass: <<1>>t
                 //#autoLOC_5050023 = <<1>>t
-                // Масса: 9.3 т [Макс. 5.0 т]
-                // Mass: 9.3t [Max. 5.0t]
 
                 string format = GetComparingFormat(ship.GetTotalMass(), MassLimit);
 
@@ -388,33 +396,33 @@ namespace KVASSNS
   
             if (!opCheck.Test())
             {
-                //fail_messages.Add(Localizer.Format("#KVASS_message_out_of_service", launchsite.Replace("_", " ")));
                 //#autoLOC_253284 = <<1>> Out of Service
                 //#autoLOC_253289 = The <<1>> is not in serviceable conditions. Cannot proceed.
                 //#autoLOC_238803 = Cleanup cost: <<1>>
-                //#autoLOC_6002249 = Repair Facility
-                //#autoLOC_6002249 = Ремонт здания
                 //#autoLOC_475433 = Repair for <color=<<1>>><<2>></b></color>\n
+                //#autoLOC_439829 = <<1>> Funds
                 //#autoLOC_475433 = Ремонтировать: <color=<<1>>><<2>></b></color>\n
+                //#autoLOC_439829 = Кредиты: <<1>>
 
                 List<DestructibleBuilding> destructibles = new List<DestructibleBuilding>();
                 foreach (KeyValuePair<string, ScenarioDestructibles.ProtoDestructible> kvp in ScenarioDestructibles.protoDestructibles)
-                {
-                    if (kvp.Key.Contains("LaunchPad"))
-                    {
+                    if (kvp.Key.Contains(launchsite)) // "LaunchPad"
                         destructibles.AddRange(kvp.Value.dBuildingRefs);
-                    }
-                }
 
-                foreach (DestructibleBuilding facility in destructibles)
-                {
-                    Log(facility.name+" repair: " +facility.RepairCost);
-                }
+                //foreach (DestructibleBuilding facility in destructibles)
+                //    Log(facility.name+ ", destroyed: "+ facility.IsDestroyed + ", cost: " + facility.RepairCost);
+
+                float RepairCost = destructibles.Where(facility => facility.IsDestroyed)
+                    .Sum(facility => facility.RepairCost);
+
+                Log("RepairCost: " + RepairCost);
 
                 Messages.Add(
                     Localizer.Format("#autoLOC_253284", launchsite_display),
-                    Localizer.Format("#autoLOC_253289", launchsite_display).Split('.').FirstOrDefault()
-                );
+                    //Localizer.Format("#autoLOC_253289", launchsite_display).Split('.').FirstOrDefault()
+                    Localizer.Format("#autoLOC_475433", Messages.NoteColor, 
+                        Localizer.Format("#autoLOC_439829", RepairCost.ToString("F0")))
+                ) ;
             }
 
             if (!clearCheck.Test())
@@ -434,9 +442,6 @@ namespace KVASSNS
                 //#autoLOC_250630 = You can't afford to launch this vessel.
                 //#autoLOC_419420 = Science: <<1>>
                 //#autoLOC_419441 = Funds: <<1>>
-                //#autoLOC_419455 = <<1>> Reputation
-                //#autoLOC_419458 = Total Reputation: <<1>>
-                //#autoLOC_166271 = \nCost: <<1>>
                 //#autoLOC_223622 = Cost
                 //#autoLOC_900528 = Cost
                 //#autoLOC_6003099 = <b>Cost:</b> <<1>>
@@ -457,12 +462,6 @@ namespace KVASSNS
             int count = Messages.Count();
 
             Messages.ShowAndClear();
-
-            if (count > 1)
-            {
-                Messages.Add(Localizer.Format("#KVASS_message_total", count));
-                Messages.ShowAndClear(seconds: (count + 1) * 5);
-            }
 
             return (count == 0); // success
         }
@@ -595,12 +594,11 @@ namespace KVASSNS
             string aID = "";
             if (KACWrapper.APIReady)
             {
+                double UT = Planetarium.GetUniversalTime();
                 aID = KACWrapper.KAC.CreateAlarm(
                     KACWrapper.KACAPI.AlarmTypeEnum.Raw,
                     title,
-                    Planetarium.GetUniversalTime() + time);
-
-                Log("New Alarm: {0}", title);
+                    UT + time);
 
 
                 if (!String.IsNullOrEmpty(aID))
@@ -627,15 +625,24 @@ namespace KVASSNS
                         int alarmsMoved = 0;
                         string firstName = "";
 
+                        //foreach (var a in alarms)
+                        //    Log(a.Name + " " + a.AlarmTime);
+
+
+                        //Log("time: " + time);
+
                         foreach (var a in alarms)
                         {
                             if (a.ID != aID)
                             {
-                                a.AlarmTime = Math.Round(a.AlarmTime + time);
+                                a.AlarmTime += time;
                                 alarmsMoved++;
                                 if (alarmsMoved == 1) firstName = a.Name;
                             }
                         }
+
+                        //foreach (var a in alarms)
+                        //    Log(a.Name + " " + a.AlarmTime);
 
                         if (alarmsMoved == 1)
                         {
@@ -766,9 +773,6 @@ namespace KVASSNS
             return false;
         }
 
-
-
-
         static IEnumerable<KACAlarm> GetPlanningActiveAlarms()
         {
             if (!KACWrapper.APIReady) return new List<KACAlarm>();
@@ -781,22 +785,21 @@ namespace KVASSNS
             return alarms;
         }
 
-        static List<KACAlarm> GetPlanningActiveAlarmsSorted()
-        {
-            var alarms = GetPlanningActiveAlarms();
-            return alarms.OrderBy(z => z.AlarmTime).ToList();
-        }
-
 
         void KAC_onAlarmStateChanged(KACWrapper.KACAPI.AlarmStateChangedEventArgs e)
         {
             if (e.eventType == KACAlarm.AlarmStateEventsEnum.Deleted)
             {
+
                 // e.alarm is still in the list
                 var deleting_alarm = e.alarm;
                 if (deleting_alarm == null || Remaining(deleting_alarm) <= 0) return;
 
-                var alarms = GetPlanningActiveAlarmsSorted();
+                //Log("    Deleting: " + deleting_alarm.Name);
+
+                var alarms = GetPlanningActiveAlarms().OrderBy(z => z.AlarmTime).ToList();
+
+                //alarms.ForEach(z => Log(z.Name+" " +z.AlarmTime));
 
                 int del_index = alarms.FindIndex(z => z.ID == deleting_alarm.ID);
 
@@ -809,17 +812,23 @@ namespace KVASSNS
 
                 double planning_UT_end = deleting_alarm.AlarmTime;
 
-                double planningTime = planning_UT_end - planning_UT_start;
+                double planningTime = Math.Round(planning_UT_end - planning_UT_start);
+
+                //Log("planning_UT_end: " + planning_UT_end);
+                //Log("planning_UT_start: " + planning_UT_start);
+                //Log("planningTime: " + planningTime);
 
 
                 for (var i = del_index + 1; i < alarms.Count; i++)
                 {
-                    alarms[i].AlarmTime = Math.Round(alarms[i].AlarmTime - planningTime);
+                    alarms[i].AlarmTime -= planningTime;
                 }
+
+                //alarms.ForEach(z => Log(z.Name + " " + z.AlarmTime));
 
                 int alarmsMoved = alarms.Count - (del_index+1);
 
-                Messages.QuickPost(Localizer.Format("#KVASS_alarm_deleted"));
+                Messages.QuickPost(Localizer.Format("#KVASS_alarm_deleted", deleting_alarm.Name));
 
                 if (alarmsMoved == 1)
                 {
@@ -832,7 +841,6 @@ namespace KVASSNS
                     Messages.QuickPost(Localizer.Format("#KVASS_alarm_deleted_others", alarmsMoved));
 
             }
-
         }
     }
 }

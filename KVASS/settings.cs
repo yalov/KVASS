@@ -22,39 +22,39 @@ namespace KVASSNS
         public bool Enable { get; private set; } = true;
 
         [GameParameters.CustomIntParameterUI("#KVASS_sim_ignore_SPH")]
-        public bool IgnoreSPH { get; set; } = false;
+        public bool IgnoreSPH { get; private set; } = false;
 
 
         [GameParameters.CustomFloatParameterUI("#KVASS_sim_career_vessel", gameMode = GameParameters.GameMode.CAREER,
             minValue = 0.0f, maxValue = 20.0f, displayFormat = "N1")]
-        public double CareerVessel { get; set; } = 2.0f;
+        public double CareerVessel { get; private set; } = 2.0f;
 
         [GameParameters.CustomFloatParameterUI("#KVASS_sim_science_vessel", gameMode = GameParameters.GameMode.SCIENCE,
             minValue = 0.0f, maxValue = 20.0f, displayFormat = "N1")]
-        public float ScienceVessel { get; set; } = 1.0f;
+        public float ScienceVessel { get; private set; } = 1.0f;
 
 
         [GameParameters.CustomParameterUI("#KVASS_sim_career_bureaucracy", toolTip = "#KVASS_sim_career_bureaucracy_tooltip",
             gameMode = GameParameters.GameMode.CAREER)]
-        public bool CareerBureaucracy { get; set; } = false;
+        public bool CareerBureaucracy { get; private set; } = false;
 
         [GameParameters.CustomParameterUI("#KVASS_sim_science_bureaucracy", toolTip = "#KVASS_sim_science_bureaucracy_tooltip",
             gameMode = GameParameters.GameMode.SCIENCE)]
-        public bool ScienceBureaucracy { get; set; } = false;
+        public bool ScienceBureaucracy { get; private set; } = false;
 
 
         [GameParameters.CustomIntParameterUI("#KVASS_sim_career_const", gameMode = GameParameters.GameMode.CAREER,
             minValue = 500, maxValue = 100000, stepSize = 500)]
-        public int CareerConst { get; set; } = 1000;
+        public int CareerConst { get; private set; } = 1000;
 
         [GameParameters.CustomFloatParameterUI("#KVASS_sim_science_const", gameMode = GameParameters.GameMode.SCIENCE,
             minValue = 0.1f, maxValue = 20.0f, displayFormat = "N1")]
-        public float ScienceConst { get; set; } = 0.5f;
+        public float ScienceConst { get; private set; } = 0.5f;
 
 
 
         [GameParameters.CustomStringParameterUI("#KVASS_sim_re", lines = 7, title = "#KVASS_sim_re")]
-        public string REString { get; set; } = "";
+        public string REString { get; private set; } = "";
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)
         {
@@ -100,47 +100,47 @@ namespace KVASSNS
         public override bool HasPresets { get { return false; } }
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_enable")]
-        public bool Enable { get; set; } = true;
+        public bool Enable { get; private set; } = true;
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_ignore_SPH")]
-        public bool IgnoreSPH { get; set; } = false;
+        public bool IgnoreSPH { get; private set; } = false;
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_career_seconds", gameMode = GameParameters.GameMode.CAREER,
             minValue = 0, maxValue = 180, stepSize = 1)]
-        public int CareerSeconds { get; set; } = 10;
+        public int CareerSeconds { get; private set; } = 10;
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_science_seconds", gameMode = GameParameters.GameMode.SCIENCE,
             minValue = 0, maxValue = 180, stepSize = 1)]
-        public int ScienceSeconds { get; set; } = 4;
+        public int ScienceSeconds { get; private set; } = 4;
 
         [GameParameters.CustomParameterUI("#KVASS_plan_enable_rep", toolTip = "#KVASS_plan_enable_rep_tooltip",
             gameMode = GameParameters.GameMode.CAREER)]
-        public bool RepSpeedUp { get; set; } = true;
+        public bool RepSpeedUp { get; private set; } = true;
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_rep", toolTip = "#KVASS_plan_rep_tooltip",
             gameMode = GameParameters.GameMode.CAREER, minValue = 10, maxValue = 300, stepSize = 5)]
-        public int RepToNextLevel { get; set; } = 240;
+        public int RepToNextLevel { get; private set; } = 240;
 
 
         [GameParameters.CustomParameterUI("#KVASS_plan_enable_kerb", toolTip = "#KVASS_plan_enable_kerb_tooltip")]
-        public bool KerbSpeedUp { get; set; } = false;
+        public bool KerbSpeedUp { get; private set; } = false;
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_kerb", toolTip = "#KVASS_plan_kerb_tooltip",
             minValue = 3, maxValue = 20, stepSize = 1)]
-        public int KerbToNextLevel { get; set; } = 7;
+        public int KerbToNextLevel { get; private set; } = 7;
 
 
         [GameParameters.CustomParameterUI("#KVASS_plan_enable_bureaucracy", toolTip = "#KVASS_plan_enable_bureaucracy_tooltip")]
-        public bool Bureaucracy { get; set; } = true;
+        public bool Bureaucracy { get; private set; } = true;
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_bureaucracy", minValue = 1, maxValue = 142, stepSize = 1)]
-        public int BureaucracyTime { get; set; } = 1;
+        public int BureaucracyTime { get; private set; } = 1;
 
         [GameParameters.CustomParameterUI("#KVASS_plan_kill_timewarp", toolTip = "#KVASS_plan_kill_timewarp_tooltip")]
-        public bool KillTimeWarp { get; set; } = true;
+        public bool KillTimeWarp { get; private set; } = true;
 
         [GameParameters.CustomParameterUI("#KVASS_plan_queue", toolTip = "#KVASS_plan_queue_tooltip")]
-        public bool Queue { get; set; } = false;
+        public bool Queue { get; private set; } = false;
 
 
 
