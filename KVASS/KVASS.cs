@@ -5,14 +5,15 @@ using PreFlightTests;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using static KVASSNS.Logging;
 
 using static KVASS_KACWrapper.KACWrapper.KACAPI;
-using Smooth.Algebraics;
+
+
+
 
 namespace KVASSNS
 {
@@ -25,21 +26,17 @@ namespace KVASSNS
         static GameParameters.DifficultyParams settingsGame;
         static Regex regex;
 
-        private IEnumerator coroutine;
+        private bool eventsRegistered = false;
 
         public void Awake()
         {
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
             {
-                Log("Game mode not supported!");
+                Log("Game mode is not supported!");
                 Destroy(this);
                 return;
             }
-        }
 
-        public void Start()
-        {
-            Log("Pouring...");
 
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASSSimSettings>();
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
@@ -47,37 +44,38 @@ namespace KVASSNS
 
             regex = new Regex(LoadRegExpPattern(), RegexOptions.IgnoreCase);
 
+            if (!eventsRegistered)
+            {
+                eventsRegistered = true;
+                GameEvents.onEditorStarted.Add(ResetEditorLaunchButtons);
+
+                // in the awake?
+                //Logger.Log("Adding button hooks");
+                //EditorLogic.fetch.saveBtn.onClick.AddListener(() => updateSavedVesselCache());
+                //EditorLogic.fetch.launchBtn.onClick.AddListener(() => updateSavedVesselCache(SaveButtonSource.LAUNCH));
+            }
+        }
+
+        public void Start()
+        {
+            
             KACWrapper.InitKACWrapper();
 
             if (KACWrapper.APIReady && settingsPlan.Queue)
                 KACWrapper.KAC.onAlarmStateChanged += KAC_onAlarmStateChanged;
 
-
-            // straight calling has problem on the first going into editor
-            // GameEvents has problem later.
-            // hopefully they will work together
-            // also possible to uncomment Coroutine
-            ResetEditorLaunchButtons();
-            GameEvents.onEditorStarted.Add(ResetEditorLaunchButtons);
-
-
-            Log("before try to start coroutine");
-
             try 
             {
-                coroutine = ResetEditorLaunchButtons_Coroutine();
-                Log("try to start coroutine");
-                StartCoroutine(coroutine);
+                //Log("try to start coroutine");
+                //StartCoroutine(ResetEditorLaunchButtons_Coroutine());
+
+                StartCoroutine(ResetEditorLaunchButtons_Wait());
             }
             catch (Exception)
             {
                 Log("Cannot start coroutine");
             }
-            
-
         }
-
-
 
         public void OnDisable()
         {
@@ -102,12 +100,19 @@ namespace KVASSNS
 
         IEnumerator ResetEditorLaunchButtons_Wait()
         {
-            yield return new WaitForSeconds(1f);
+            Log("Pouring...");
+            yield return new WaitForSeconds(0.3f);
+            Log("Pouring finished");
+
             ResetEditorLaunchButtons();
         }
 
 
-        void ResetEditorLaunchButtons()
+
+
+        // CANNOT be marked as static
+        public void ResetEditorLaunchButtons()
+
         {
             Log("Chug! Chug! Chug!");
             //Log("ResetEditorLaunchButtons");
@@ -118,9 +123,9 @@ namespace KVASSNS
             // possible revert to previous way?
             UnityEngine.UI.Button greenButton = EditorLogic.fetch.launchBtn;
             greenButton.onClick.RemoveAllListeners();
-            greenButton.onClick.AddListener(() => { LaunchListener(null); });
+            greenButton.onClick.AddListener(() => { LaunchClickListener(null); });
 
-            Log("Green AddListener");
+            //Log("Green is resetted");
 
 
             if (settingsGame.AllowOtherLaunchSites)
@@ -128,16 +133,17 @@ namespace KVASSNS
                 UILaunchsiteController controller = UnityEngine.Object.FindObjectOfType<UILaunchsiteController>();
                 if (controller == null)
                 {
-                    Log("ResetEditorLaunchButtons: Controller is null");
+                    //Log("ResetEditorLaunchButtons: Controller is null");
                     return;
                 }
 
-                Log("ResetEditorLaunchButtons: Controller is OK");
+                //Log("ResetEditorLaunchButtons: Controller is OK");
 
 
                 object items = controller.GetType()?.GetPrivateMemberValue("launchPadItems", controller, 4);
 
-                Log("ResetEditorLaunchButtons: items");
+
+                //Log("ResetEditorLaunchButtons: items");
 
                 //object items2 = controller.GetType()?.GetPrivateMemberValue("runWayItems", controller, 4);
 
@@ -145,8 +151,11 @@ namespace KVASSNS
                 // not castable to a IEnumerable
                 if (items == null) return;
                 IEnumerable list = items as IEnumerable;
+
+                //Log("ResetEditorLaunchButtons: list is OK");
+
                 //int i = 0; foreach (object site in list) { i++; }; Log("launchPadItems: " + i);
-                
+
 
 
                 //if (items2 == null) return;
@@ -162,7 +171,7 @@ namespace KVASSNS
                     {
                         button.onClick.RemoveAllListeners();
                         string siteName = site.GetType().GetPublicValue<string>("siteName", site);
-                        button.onClick.AddListener(() => { LaunchListener(siteName); });
+                        button.onClick.AddListener(() => { LaunchClickListener(siteName); });
                     }
                 }
             }
@@ -171,14 +180,17 @@ namespace KVASSNS
 
 
         //Replace the default action to LaunchListener.
-        static void LaunchListener(string launchSite)
+        static void LaunchClickListener(string launchSite)
         {
             Log("KVASS Launch Sequence");
+            Log("launchSite param: " + launchSite);
 
             if (string.IsNullOrEmpty(launchSite))
             {
                 launchSite = EditorLogic.fetch.launchSiteName;
             }
+            Log("launchSite reseted: " + launchSite);
+
 
             if (settingsSim.Enable
                 && !(settingsSim.IgnoreSPH && EditorDriver.editorFacility == EditorFacility.SPH)
@@ -207,18 +219,15 @@ namespace KVASSNS
                 {
                     bool checks_succeed = CheckLaunchingPossibility(launchSite);
                     if (checks_succeed)
+                    {
                         RemoveAlarm(alarm.ID);
-
-                    // even if checks_succeed is false, launching will be interrupted by KSP.
-                    // CheckLaunchingPossibility needed for not removing alarm if launch will be failed
-                    Log("launchVessel now!");
-                    EditorLogic.fetch.launchVessel(launchSite);
+                        EditorLogic.fetch.launchVessel(launchSite);
+                    }
                 }
                 else
                 {
                     Messages.Add(Localizer.Format("#KVASS_alarm_not_finished", alarmTitle));
                     Messages.ShowAndClear();
-
                 }
 
             }
@@ -227,9 +236,7 @@ namespace KVASSNS
                 Log("SafeLaunch");
                 EditorLogic.fetch.launchVessel();
             }
-
         }
-
 
         static string LoadRegExpPattern()
         {
@@ -291,7 +298,7 @@ namespace KVASSNS
 
             //ship.shipFacility == EditorFacility.VAB;
 
-            Log("isVABAndLaunchPad: "+isVABAndLaunchPad);
+            Log("isVABAndLaunchPad: " + isVABAndLaunchPad);
 
 
             SpaceCenterFacility EditorBuilding;
@@ -319,31 +326,53 @@ namespace KVASSNS
             Log("CraftSizeLimit: " + SizeLimit);
             Log("CraftMassLimit: " + MassLimit);
 
-            CraftWithinPartCountLimit partcount = new CraftWithinPartCountLimit(ship, EditorBuilding, PartsCountLimit);
-            CraftWithinSizeLimits sizetest      = new CraftWithinSizeLimits(ship, LaunchBuilding, SizeLimit);
-            CraftWithinMassLimits masstest      = new CraftWithinMassLimits(ship, LaunchBuilding, MassLimit);
+            int KKPartsCountLimit = Reflection.GetKKCraftPartCountLimit(launchsite);
+            Vector3 KKSizeLimit   = Reflection.GetKKCraftSizeLimit(launchsite);
+            double KKMassLimit    = Reflection.GetKKCraftMassLimit(launchsite);
+
+            Log("KKPartCountLimit: " + KKPartsCountLimit);
+            Log("KKCraftSizeLimit: " + KKSizeLimit);
+            Log("KKCraftMassLimit: " + KKMassLimit);
+
+            PartsCountLimit = Math.Min(PartsCountLimit, PartsCountLimit);
+            SizeLimit      = Utils.Min(SizeLimit,       SizeLimit      );
+            MassLimit       = Math.Min(MassLimit,       MassLimit);
+            
+
+            CraftWithinPartCountLimit partCountTest = new CraftWithinPartCountLimit(ship, EditorBuilding, PartsCountLimit);
+            CraftWithinSizeLimits sizeTest      = new CraftWithinSizeLimits(ship, LaunchBuilding, SizeLimit);
+            CraftWithinMassLimits massTest      = new CraftWithinMassLimits(ship, LaunchBuilding, MassLimit);
             CanAffordLaunchTest fundsCheck = new CanAffordLaunchTest(ship, Funding.Instance);
-            FacilityOperational opCheck = new FacilityOperational(launchsite, launchsite);
+            FacilityOperational operationalCheck = new FacilityOperational(launchsite, launchsite);
             LaunchSiteClear clearCheck = new LaunchSiteClear(launchsite, launchsite, HighLogic.CurrentGame);
+
+            //bool partCountKKTest = Reflection.PartCountKKTest(ship, launchsite);
+            //bool sizeKKTest = Reflection.SizeKKTest(ship, launchsite);
+            //bool massKKTest = Reflection.MassKKTest(ship, launchsite);
 
             //#autoLOC_6001000 = Max.
 
-            if (!partcount.Test())
+
+            if (!partCountTest.Test())
             {
                 //#autoLOC_250727 = Craft has too many parts!
                 //#autoLOC_250732 = The <<1>> can't support vessels over <<2>> parts.
                 //#autoLOC_443352 = Parts:
 
                 Messages.Add(
-                    Localizer.Format("#autoLOC_250727"),
-                    String.Format("{0} {1} [{2} {3}]\n",
-                        Localizer.Format("#autoLOC_443352"), ship.Parts.Count,
-                        Localizer.Format("#autoLOC_6001000"), PartsCountLimit
-                    )
-                );
+                    partCountTest.GetFailedMessage(), 
+                    partCountTest.GetFailedNote(ship.Parts.Count, PartsCountLimit));
+
+                //Messages.Add(
+                //    Localizer.Format("#autoLOC_250727"),
+                //    String.Format("{0} {1} [{2} {3}]\n",
+                //        Localizer.Format("#autoLOC_443352"), ship.Parts.Count,
+                //        Localizer.Format("#autoLOC_6001000"), PartsCountLimit
+                //    )
+                //);
             }
 
-            if (!sizetest.Test())
+            if (!sizeTest.Test())
             {
                 //#autoLOC_250793 = Craft is too large for <<1>>!
                 //#autoLOC_443418 = Height:
@@ -380,7 +409,7 @@ namespace KVASSNS
                 Messages.Add( message1, message2);
             }
 
-            if (!masstest.Test())
+            if (!massTest.Test())
             {
                 //#autoLOC_250677 = Craft is too heavy!
                 //#autoLOC_250682 = The <<1>> can't support vessels heavier than <<2>>t.\n<<3>>'s total mass is <<4>>t.
@@ -402,7 +431,7 @@ namespace KVASSNS
                 );
             }
   
-            if (!opCheck.Test())
+            if (!operationalCheck.Test())
             {
                 //#autoLOC_253284 = <<1>> Out of Service
                 //#autoLOC_253289 = The <<1>> is not in serviceable conditions. Cannot proceed.

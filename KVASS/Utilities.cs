@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 
 namespace KVASSNS
 {
@@ -17,6 +18,11 @@ namespace KVASSNS
             else
                 newVal = ((System.Reflection.PropertyInfo)member).GetValue(sourceObject, null);
             return newVal;
+        }
+
+        public static Vector3 Min(Vector3 a, Vector3 b)
+        {
+            return new Vector3(Math.Min(a.x, b.x), Math.Min(a.y, b.y), Math.Min(a.z, b.z));
         }
     }
 
