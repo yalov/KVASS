@@ -10,6 +10,8 @@ using System.Text.RegularExpressions;
 using UnityEngine;
 using static KVASSNS.Logging;
 
+
+
 using static KVASS_KACWrapper.KACWrapper.KACAPI;
 
 
@@ -17,14 +19,18 @@ using static KVASS_KACWrapper.KACWrapper.KACAPI;
 
 namespace KVASSNS
 {
+
+
+
+
     // https://github.com/linuxgurugamer/KCT was used there
-    [KSPAddon(KSPAddon.Startup.EditorAny, false)]
+    [KSPAddon(KSPAddon.Startup.FlightEditorAndKSC, false)]
     public class KVASS : MonoBehaviour
     {
         static KVASSSimSettings settingsSim;
         static KVASSPlanSettings settingsPlan;
         static GameParameters.DifficultyParams settingsGame;
-        static Regex regex;
+        static Regex SimulationRegEx;
 
         private bool eventsRegistered = false;
 
@@ -37,12 +43,19 @@ namespace KVASSNS
                 return;
             }
 
+            if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
+            {
+                Log("KSC Scene, KVASS is destroyed");
+                Destroy(this);
+                return;
+            }
+
 
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASSSimSettings>();
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
             settingsGame = HighLogic.CurrentGame.Parameters.Difficulty;
 
-            regex = new Regex(LoadRegExpPattern(), RegexOptions.IgnoreCase);
+            SimulationRegEx = new Regex(LoadRegExpPattern(), RegexOptions.IgnoreCase);
 
             if (!eventsRegistered)
             {
@@ -63,6 +76,34 @@ namespace KVASSNS
 
             if (KACWrapper.APIReady && settingsPlan.Queue)
                 KACWrapper.KAC.onAlarmStateChanged += KAC_onAlarmStateChanged;
+
+
+            if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+            {
+                string name = FlightGlobals.ActiveVessel.GetDisplayName();
+
+                if (settingsPlan.Enable
+                    && !SimulationRegEx.IsMatch(name)
+                //&& !(settingsPlan.IgnoreSPH && FlightGlobals.fetch.activeVessel. == EditorFacility.SPH)
+                && KACWrapper.APIReady)
+                {
+                    string alarmTitle = KACUtils.AlarmTitle(name);
+
+                    KACAlarm alarm = KACUtils.GetAlarm(alarmTitle);
+                    
+                    if (alarm.Finished())
+                    {
+                        Log("Removing Alarm");
+                        KACUtils.RemoveAlarm(alarm.ID);
+                        //settingsGame.
+                    }
+
+                    Destroy(this);
+                    
+                }
+                return;
+            }
+
 
             try 
             {
@@ -194,7 +235,7 @@ namespace KVASSNS
 
             if (settingsSim.Enable
                 && !(settingsSim.IgnoreSPH && EditorDriver.editorFacility == EditorFacility.SPH)
-                && regex.IsMatch(EditorLogic.fetch.ship.shipName))
+                && SimulationRegEx.IsMatch(EditorLogic.fetch.ship.shipName))
             {
                 bool success = SimulationPurchase();
 
@@ -206,23 +247,23 @@ namespace KVASSNS
                 && KACWrapper.APIReady)
             {
                 string shipName = EditorLogic.fetch.ship.shipName;
-                string alarmTitle = Localizer.Format("#KVASS_alarm_title_prefix") + " " + shipName;
+                string alarmTitle = KACUtils.AlarmTitle(shipName);
 
-                KACAlarm alarm = GetAlarm(alarmTitle);
+                KACAlarm alarm = KACUtils.GetAlarm(alarmTitle);
 
                 if (alarm == null)
                 {
                     // Alarm Is Not Found, Creating
                     CreateNewAlarm(alarmTitle);
                 }
-                else if (IsAlarmFinished(alarm))
+                else if (KACUtils.IsAlarmFinished(alarm))
                 {
-                    bool checks_succeed = CheckLaunchingPossibility(launchSite);
-                    if (checks_succeed)
-                    {
-                        RemoveAlarm(alarm.ID);
+                    //bool checks_succeed = CheckLaunchingPossibility(launchSite);
+                    //if (checks_succeed)
+                    //{
+                        //RemoveAlarm(alarm.ID);
                         EditorLogic.fetch.launchVessel(launchSite);
-                    }
+                    //}
                 }
                 else
                 {
@@ -658,15 +699,9 @@ namespace KVASSNS
 
                     if (settingsPlan.Queue)
                     {
-                        var alarms = GetPlanningActiveAlarms();
+                        var alarms = KACUtils.GetPlanningActiveAlarms();
                         int alarmsMoved = 0;
                         string firstName = "";
-
-                        //foreach (var a in alarms)
-                        //    Log(a.Name + " " + a.AlarmTime);
-
-
-                        //Log("time: " + time);
 
                         foreach (var a in alarms)
                         {
@@ -678,13 +713,10 @@ namespace KVASSNS
                             }
                         }
 
-                        //foreach (var a in alarms)
-                        //    Log(a.Name + " " + a.AlarmTime);
-
                         if (alarmsMoved == 1)
                         {
-                            firstName = firstName.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
-                            Messages.QuickPost(Localizer.Format("#KVASS_alarm_created_another", firstName));
+                            string shipname = KACUtils.ShipName(firstName);
+                            Messages.QuickPost(Localizer.Format("#KVASS_alarm_created_another", shipname));
                         }
                         else if (alarmsMoved > 1)
                             Messages.QuickPost(Localizer.Format("#KVASS_alarm_created_others", alarmsMoved));
@@ -738,90 +770,6 @@ namespace KVASSNS
             return time;
         }
 
-        /// <summary>
-        /// Get Alarm by vessel name. Return Alarm or null.
-        /// </summary>
-        /// <param name="vessel_name"></param>
-        /// <returns></returns>
-        static KACAlarm GetAlarm(string vessel_name)
-        {
-            if (KACWrapper.APIReady)
-            {
-                KACAlarm a = KACWrapper.KAC.Alarms.FirstOrDefault(z => z.Name == vessel_name);
-
-                if (a != null)
-                {
-                    return a;
-                }
-            }
-
-            return null;
-        }
-
-
-
-
-        /// <summary>
-        /// How many seconds remains until alarm will be finished. 
-        /// Returns negative values for already finished alarms
-        /// </summary>
-        /// <param name="a"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <returns></returns>
-        static private double Remaining(KACAlarm a)
-        {
-            if (a == null) throw new ArgumentNullException(nameof(a));
-
-            double time_now = HighLogic.CurrentGame.flightState.universalTime;
-            double alarmTime = a.AlarmTime;
-
-            return alarmTime - time_now;
-        }
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="a"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <returns></returns>
-        static bool IsAlarmFinished(KACAlarm a)
-        {
-            if (a == null) throw new ArgumentNullException(nameof(a));
-
-            return Remaining(a) < 0.0;
-        }
-
-        /// <summary>
-        /// Remove alarm by ID. Return bool success.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        static bool RemoveAlarm(string id)
-        {
-            if (KACWrapper.APIReady)
-            {
-                bool result = KACWrapper.KAC.DeleteAlarm(id);
-                Log("Removing Alarm, Success:{0}", result);
-                return result;
-            }
-
-            Log("KAC is not found");
-            return false;
-        }
-
-        static IEnumerable<KACAlarm> GetPlanningActiveAlarms()
-        {
-            if (!KACWrapper.APIReady) return new List<KACAlarm>();
-
-            var alarms = KACWrapper.KAC.Alarms.Where(
-                    a => Remaining(a) > 0 &&
-                    a.Name.StartsWith(Localizer.Format("#KVASS_alarm_title_prefix"), StringComparison.Ordinal)
-                    );
-                
-            return alarms;
-        }
-
 
         void KAC_onAlarmStateChanged(KACWrapper.KACAPI.AlarmStateChangedEventArgs e)
         {
@@ -830,11 +778,11 @@ namespace KVASSNS
 
                 // e.alarm is still in the list
                 var deleting_alarm = e.alarm;
-                if (deleting_alarm == null || Remaining(deleting_alarm) <= 0) return;
+                if (deleting_alarm == null || KACUtils.Remaining(deleting_alarm) <= 0) return;
 
                 //Log("    Deleting: " + deleting_alarm.Name);
 
-                var alarms = GetPlanningActiveAlarms().OrderBy(z => z.AlarmTime).ToList();
+                var alarms = KACUtils.GetPlanningActiveAlarms().OrderBy(z => z.AlarmTime).ToList();
 
                 //alarms.ForEach(z => Log(z.Name+" " +z.AlarmTime));
 
@@ -855,13 +803,10 @@ namespace KVASSNS
                 //Log("planning_UT_start: " + planning_UT_start);
                 //Log("planningTime: " + planningTime);
 
-
                 for (var i = del_index + 1; i < alarms.Count; i++)
                 {
                     alarms[i].AlarmTime -= planningTime;
                 }
-
-                //alarms.ForEach(z => Log(z.Name + " " + z.AlarmTime));
 
                 int alarmsMoved = alarms.Count - (del_index+1);
 
@@ -869,10 +814,9 @@ namespace KVASSNS
 
                 if (alarmsMoved == 1)
                 {
-                    string firstName = alarms[del_index + 1].Name;
-                    firstName = firstName.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
+                    string ShipName = KACUtils.ShipName(alarms[del_index + 1].Name);
 
-                    Messages.QuickPost(Localizer.Format("#KVASS_alarm_deleted_another", firstName));
+                    Messages.QuickPost(Localizer.Format("#KVASS_alarm_deleted_another", ShipName));
                 }
                 else if (alarmsMoved > 1)
                     Messages.QuickPost(Localizer.Format("#KVASS_alarm_deleted_others", alarmsMoved));

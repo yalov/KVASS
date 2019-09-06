@@ -1,5 +1,8 @@
 ChangeLog:
 
+0.11.0 ("alternative")
+shifting on the noteditor problem
+
 ## Version 0.9.0 (unreleased)
  * supports MH Launch buttons
  * possibility to ignore SPH. Planes and trucks are built without planning/simulation.

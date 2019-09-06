@@ -47,6 +47,7 @@
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="KACUtils.cs" />
     <Compile Include="KACWrapper.cs" />
     <Compile Include="LaunchSitesChecks.cs" />
     <Compile Include="Logging.cs" />
