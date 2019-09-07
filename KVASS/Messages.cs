@@ -9,20 +9,6 @@ namespace KVASSNS
 {
     static class Messages
     {
-        class Triplet
-        {
-            public Triplet(string message, string note, bool? paragraph = null)
-            {
-                Message = message;
-                Note = note;
-                Paragraph = paragraph;
-            }
-
-            public String Message { get; }
-            public String Note { get; }
-            public bool? Paragraph { get; }
-        }
-
         public const String MessageColor = "#ffa500ff"; // Orange
         public const String NoteColor    = "#ffa500af"; // OrangeAlpha
         
@@ -156,5 +142,33 @@ namespace KVASSNS
 
         private static List<Triplet> _failMessages = new List<Triplet>();
         private static int _countOfLines = 0;
+
+
+
+        class Triplet
+        {
+            public Triplet(string message, string note, bool? paragraph = null)
+            {
+                Message = message;
+                Note = note;
+                Paragraph = paragraph;
+            }
+
+            public String Message { get; }
+            public String Note { get; }
+            public bool? Paragraph { get; }
+        }
+
+        //private static void ShowDialog(string message = "You can't afford to launch this vessel.",
+        //    string close_title = "Unable to Launch", float height = 100f)
+        //{
+        //    PopupDialog.SpawnPopupDialog(
+        //        new MultiOptionDialog(
+        //            "NotEnoughFunds", message, "Not Enough Funds!",
+        //            HighLogic.UISkin,
+        //            new Rect(0.5f, 0.5f, 300f, height),
+        //            new DialogGUIButton(close_title, () => { }, true)
+        //        ), false, HighLogic.UISkin, true);
+        //}
     }
 }

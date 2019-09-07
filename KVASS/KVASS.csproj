@@ -49,7 +49,6 @@
   <ItemGroup>
     <Compile Include="KACUtils.cs" />
     <Compile Include="KACWrapper.cs" />
-    <Compile Include="LaunchSitesChecks.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="Messages.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

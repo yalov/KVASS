@@ -66,13 +66,13 @@ namespace KVASSNS
         /// <summary>
         /// Get Alarm by vessel name. Return Alarm or null.
         /// </summary>
-        /// <param name="vessel_name"></param>
+        /// <param name="vesselName"></param>
         /// <returns></returns>
-        static public KACAlarm GetAlarm(string vessel_name)
+        static public KACAlarm GetAlarm(string vesselName)
         {
             if (KACWrapper.APIReady)
             {
-                KACAlarm a = KACWrapper.KAC.Alarms.FirstOrDefault(z => z.Name == vessel_name);
+                KACAlarm a = KACWrapper.KAC.Alarms.FirstOrDefault(z => z.Name == vesselName);
 
                 if (a != null)
                 {

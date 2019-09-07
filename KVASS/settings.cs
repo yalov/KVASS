@@ -10,7 +10,6 @@ namespace KVASSNS
 
     public class KVASSSimSettings : GameParameters.CustomParameterNode
     {
-
         public override string Title { get { return Localizer.Format("#KVASS_sim_title"); } }
         public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.CAREER | GameParameters.GameMode.SCIENCE; } }
         public override string Section { get { return "KVASS"; } }
@@ -52,13 +51,11 @@ namespace KVASSNS
         public float ScienceConst { get; private set; } = 0.5f;
 
 
-
         [GameParameters.CustomStringParameterUI("#KVASS_sim_re", lines = 7, title = "#KVASS_sim_re")]
         public string REString { get; private set; } = "";
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)
         {
-
             return true;
         }
 
@@ -91,7 +88,6 @@ namespace KVASSNS
 
     public class KVASSPlanSettings : GameParameters.CustomParameterNode
     {
-
         public override string Title { get { return Localizer.Format("#KVASS_plan_title"); } }
         public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.CAREER | GameParameters.GameMode.SCIENCE; } }
         public override string Section { get { return "KVASS"; } }
@@ -129,7 +125,6 @@ namespace KVASSNS
             minValue = 3, maxValue = 20, stepSize = 1)]
         public int KerbToNextLevel { get; private set; } = 7;
 
-
         [GameParameters.CustomParameterUI("#KVASS_plan_enable_bureaucracy", toolTip = "#KVASS_plan_enable_bureaucracy_tooltip")]
         public bool Bureaucracy { get; private set; } = true;
 
@@ -140,9 +135,7 @@ namespace KVASSNS
         public bool KillTimeWarp { get; private set; } = true;
 
         [GameParameters.CustomParameterUI("#KVASS_plan_queue", toolTip = "#KVASS_plan_queue_tooltip")]
-        public bool Queue { get; private set; } = false;
-
-
+        public bool Queue { get; private set; } = true;
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)
         {
