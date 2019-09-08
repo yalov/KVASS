@@ -15,7 +15,7 @@ using static KVASS_KACWrapper.KACWrapper.KACAPI;
 namespace KVASSNS
 {
     // https://github.com/linuxgurugamer/KCT was used there
-    [KSPAddon(KSPAddon.Startup.FlightEditorAndKSC, false)]
+    [KSPAddon(KSPAddon.Startup.FlightAndEditor /*FlightEditorAndKSC*/, false)]
     public class KVASS : MonoBehaviour
     {
         static KVASSSimSettings settingsSim;
@@ -29,14 +29,13 @@ namespace KVASSNS
         {
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
             {
-                Log("Game mode is not supported!");
+                Log(HighLogic.CurrentGame.Mode + " mode is not supported.");
                 Destroy(this);
                 return;
             }
 
             if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
             {
-                Log("KSC Scene, KVASS is destroyed");
                 Destroy(this);
                 return;
             }
@@ -68,7 +67,6 @@ namespace KVASSNS
             if (KACWrapper.APIReady && settingsPlan.Queue)
                 KACWrapper.KAC.onAlarmStateChanged += KAC_onAlarmStateChanged;
 
-
             if (HighLogic.LoadedScene == GameScenes.FLIGHT)
             {
                 string name = FlightGlobals.ActiveVessel.GetDisplayName();
@@ -84,13 +82,11 @@ namespace KVASSNS
                     
                     if (alarm.Finished())
                     {
-                        Log("Removing Alarm");
-                        KACUtils.RemoveAlarm(alarm.ID);
-                        //settingsGame.
+                        bool success = KACUtils.RemoveAlarm(alarm.ID);
+                        Log("Removing alarm, success:{0}", success);
                     }
 
                     Destroy(this);
-                    
                 }
                 return;
             }
@@ -144,7 +140,7 @@ namespace KVASSNS
         public void ResetEditorLaunchButtons()
 
         {
-            Log("Chug! Chug! Chug!");
+            //Log("Chug! Chug! Chug!");
             //Log("ResetEditorLaunchButtons");
             //UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent();
             //c.AddListener(OnLoadClick);
@@ -210,14 +206,14 @@ namespace KVASSNS
         //Replace the default action to LaunchListener.
         static void LaunchClickListener(string launchSite)
         {
-            Log("KVASS Launch Sequence");
-            Log("launchSite param: " + launchSite);
+            //Log("KVASS Launch Sequence");
+            //Log("launchSite param: " + launchSite);
 
             if (string.IsNullOrEmpty(launchSite))
             {
                 launchSite = EditorLogic.fetch.launchSiteName;
             }
-            Log("launchSite reseted: " + launchSite);
+            //Log("launchSite reseted: " + launchSite);
 
 
             if (settingsSim.Enable
@@ -255,7 +251,6 @@ namespace KVASSNS
             }
             else
             {
-                Log("SafeLaunch");
                 EditorLogic.fetch.launchVessel();
             }
         }
@@ -404,7 +399,7 @@ namespace KVASSNS
             string aID = "";
             if (KACWrapper.APIReady)
             {
-                double UT = Planetarium.GetUniversalTime();
+                double UT = HighLogic.CurrentGame.flightState.universalTime;
                 aID = KACWrapper.KAC.CreateAlarm(
                     KACWrapper.KACAPI.AlarmTypeEnum.Raw,
                     title,
@@ -494,7 +489,7 @@ namespace KVASSNS
             if (settingsPlan.Bureaucracy)
                 time += settingsPlan.BureaucracyTime * KSPUtil.dateTimeFormatter.Day;
 
-            log_str = String.Format("PlanTime: {0:F1} days", time / KSPUtil.dateTimeFormatter.Day) + log_str;
+            log_str = String.Format("PlanTime: {0:F1} days", time/ KSPUtil.dateTimeFormatter.Day) + log_str;
             Log(log_str);
 
             return time;
@@ -520,7 +515,7 @@ namespace KVASSNS
                 double planning_UT_start;
 
                 if (del_index == 0)
-                    planning_UT_start = HighLogic.CurrentGame.flightState.universalTime;
+                    planning_UT_start = HighLogic.CurrentGame.flightState.universalTime; //Planetarium.GetUniversalTime();
                 else
                     planning_UT_start = alarms[del_index - 1].AlarmTime;
 

@@ -132,7 +132,7 @@ namespace KVASSNS
         public int BureaucracyTime { get; private set; } = 1;
 
         [GameParameters.CustomParameterUI("#KVASS_plan_kill_timewarp", toolTip = "#KVASS_plan_kill_timewarp_tooltip")]
-        public bool KillTimeWarp { get; private set; } = true;
+        public bool KillTimeWarp { get; private set; } = false;
 
         [GameParameters.CustomParameterUI("#KVASS_plan_queue", toolTip = "#KVASS_plan_queue_tooltip")]
         public bool Queue { get; private set; } = true;

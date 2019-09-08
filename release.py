@@ -4,7 +4,7 @@ pip install GitPython PyGithub
 ./release_spacedock_utils.py
 
 Public domain license.
-author: flart, version: 10
+author: flart, version: 11
 https://github.com/yalov/SpeedUnitAnnex/blob/master/release.py
 
 Script loads release-arhive to github and spacedock
@@ -71,7 +71,7 @@ def get_version(version_file, obj="VERSION"):
 
 def get_description(path):
     """ Get description of the last version in the changelog """
-    version = r"(#+ )?(Version )?\d\.\d\.\d(\.\d)?(/\d\.\d\.\d(\.\d)?)?( [(\"\')][^\n]*[)\"\')])?"
+    version = r"(#+ )?(Version )?\d(\d)?\.\d(\d)?\.\d(\d)?(\.\d)?(/\d(\d)?\.\d(\d)?\.\d(\d)?(\.\d)?)?( [(\"\')][^\n]*[)\"\')])?"
     changelog = open(path).read()
     pattern = r"\n\s*\n{0}\n(?P<last>.+?)\n({0}|\n\Z|\Z)".format(version)
     desc = re.search(pattern, changelog, re.DOTALL).group('last')

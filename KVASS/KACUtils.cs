@@ -94,11 +94,8 @@ namespace KVASSNS
             if (KACWrapper.APIReady)
             {
                 bool result = KACWrapper.KAC.DeleteAlarm(id);
-                Log("Removing Alarm, Success:{0}", result);
                 return result;
             }
-
-            Log("KAC is not found");
             return false;
         }
 
