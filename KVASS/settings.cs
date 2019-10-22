@@ -139,7 +139,8 @@ namespace KVASSNS
         [GameParameters.CustomParameterUI("#KVASS_plan_enable_sci", toolTip = "#KVASS_plan_enable_sci_tooltip")]
         public bool SciSpeedUp { get; private set; } = true;
 
-        [GameParameters.CustomIntParameterUI("#KVASS_plan_bureaucracy", minValue = 50, maxValue = 5000, stepSize = 50)]
+        [GameParameters.CustomIntParameterUI("#KVASS_plan_sci", toolTip = "#KVASS_plan_sci_tooltip", 
+            minValue = 50, maxValue = 5000, stepSize = 50)]
         public int SciToNextLevel { get; private set; } = 2500;
 
 
@@ -158,7 +159,7 @@ namespace KVASSNS
         public bool Queue { get; private set; } = true;
 
         [GameParameters.CustomParameterUI("#KVASS_plan_message_speedUps", toolTip = "#KVASS_plan_message_speedUps_tooltip")]
-        public bool ShowMessageSpeedUps { get; private set; } = true;
+        public bool ShowMessageSpeedUps { get; private set; } = false;
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {

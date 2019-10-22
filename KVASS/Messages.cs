@@ -8,8 +8,8 @@ namespace KVASSNS
 {
     static class Messages
     {
-        public const String MessageColor = "#ffa500ff"; // Orange
-        public const String NoteColor    = "#ffa500af"; // OrangeAlpha
+        public const String Orange = "#ffa500ff"; // Orange
+        public const String OrangeAlpha    = "#ffa500af"; // OrangeAlpha
 
        
         /// <summary>
@@ -17,7 +17,7 @@ namespace KVASSNS
         /// </summary>
         /// <param name="message"></param>
         /// <param name="note"></param>
-        public static void Add(string message, string note = "", bool? paragraph= null)
+        public static void AddFail(string message, string note = "", bool? paragraph= null)
         {
             if (String.IsNullOrEmpty(message)) message = "";
             if (String.IsNullOrEmpty(note)) note = "";
@@ -39,35 +39,36 @@ namespace KVASSNS
         /// Looks like max amount of line at screen at ones is 10.
         /// </summary>
         /// <param name="seconds"></param>
-        public static void ShowAndClear(int seconds = 5)
+        public static void ShowFailsAndClear(int seconds = 5)
         {
-            bool several = Count() > 1;
+            bool several = _failMessages.Count > 1;
 
             if (several)
-                Add(Localizer.Format("#KVASS_message_total", Count()), paragraph: false);
+                AddFail(Localizer.Format("#KVASS_message_total", _failMessages.Count), paragraph: false);
                 
-            bool emptyLine = Count() + _countOfLines <= 11;
+            bool emptyLine = _failMessages.Count + _countOfLines <= 11;
             bool second = _countOfLines <= 10;
 
-            for (int i = 0; i < Count(); i++)
+            for (int i = 0; i < _failMessages.Count; i++)
             {
                 var fm = _failMessages[i];
                 string message = fm.Message;
                 string note = fm.Note;
                 bool paragraph = fm.Paragraph.HasValue ? fm.Paragraph.Value : several;
                 bool both = !String.IsNullOrEmpty(message) && !String.IsNullOrEmpty(note);
-                bool last = i == Count() - 1;
+                bool last = i == _failMessages.Count - 1;
 
                 PostScreenMessage(
-                    Paragraph(Colorize(message, MessageColor), paragraph)
+                    Paragraph(Colorize(message, Orange), paragraph)
                     + (both && second ? "\n" : "")
-                    + (second ? Colorize(note, NoteColor) : "")
+                    + (second ? Colorize(note, OrangeAlpha) : "")
                     + (emptyLine && !last ? "\n\n" : ""),
                     seconds * (i + 1));
 
             }
-                
-            Clear();
+
+            _failMessages.Clear();
+            _countOfLines = 0;
         }
         
         /// <summary>
@@ -85,22 +86,37 @@ namespace KVASSNS
             else
                 PostScreenMessage(message, duration);
         }
-        
 
 
-        /// <summary>
-        /// Amount of messages in the quere.
-        /// </summary>
-        /// <returns></returns>
-        private static int Count()
+        public static void Add(string message, int key=0, string color = null)
         {
-            return _failMessages.Count;
+            messages.Add(key, new Duplet(message, color));
         }
 
-        private static void Clear()
+        public static void Append(string message, string color = null)
         {
-            _failMessages.Clear();
-            _countOfLines = 0;
+            if (messages.Count == 0)
+                messages.Add(0, new Duplet(message, color));
+            else
+                messages.Add(messages.Keys.Last() +1,new Duplet(message, color));
+        }
+
+        public static void Prepend(string message, string color = null)
+        {
+            if (messages.Count == 0)
+                messages.Add(0, new Duplet(message, color));
+            else
+                messages.Add(messages.Keys.First() - 1, new Duplet(message, color));
+        }
+
+        public static void ShowAndClear(float duration = 5.0f, bool duration_incremened = true, String color = null)
+        {
+            int i = 1;
+            foreach (var pair in messages)
+            {
+                QuickPost(pair.Value.Message, duration_incremened?i++:1 * duration, color ?? pair.Value.Color);
+            }
+            messages.Clear();
         }
 
         private static string Paragraph(string message, bool enclose)
@@ -111,6 +127,7 @@ namespace KVASSNS
                 return message;
 
         }
+
         private static string Red(string message) => Colorize(message, "red");
         private static string Colorize(string message, string color) => String.Format("<color={1}>{0}</color>", message, color);
 
@@ -137,10 +154,9 @@ namespace KVASSNS
             return str;
         }
 
-
         private static List<Triplet> _failMessages = new List<Triplet>();
         private static int _countOfLines = 0;
-
+        private static SortedDictionary<int, Duplet> messages = new SortedDictionary<int, Duplet>();
 
         class Triplet
         {
@@ -154,6 +170,19 @@ namespace KVASSNS
             public String Message { get; }
             public String Note { get; }
             public bool? Paragraph { get; }
+        }
+
+        class Duplet
+        {
+            public Duplet(string message, String color)
+            {
+                Message = message;
+                Color = color;
+            }
+
+            public String Message { get; }
+            public String Color { get; }
+            
         }
 
 

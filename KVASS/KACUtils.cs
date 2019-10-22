@@ -38,7 +38,9 @@ namespace KVASSNS
 
             return alarmTime - time_now;
         }
-
+        
+        /// <param name="a">alarm</param>
+        /// <returns>boolean finished. false if alarm is null</returns>
         static public bool Finished(this KACAlarm a)
         {
             if (a == null) return false; //throw new ArgumentNullException(nameof(a));
