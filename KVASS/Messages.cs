@@ -1,9 +1,8 @@
 ﻿using KSP.Localization;
-using Smooth.Algebraics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+
 
 namespace KVASSNS
 {
@@ -11,7 +10,6 @@ namespace KVASSNS
     {
         public const String MessageColor = "#ffa500ff"; // Orange
         public const String NoteColor    = "#ffa500af"; // OrangeAlpha
-        
 
        
         /// <summary>
@@ -33,7 +31,7 @@ namespace KVASSNS
 
             foreach (var str in new List<string> { message, note })
                 if (!String.IsNullOrEmpty(str))
-                    _countOfLines += str.Split('\n').Count();
+                    _countOfLines += str.Split('\n').Length;
         }
         
         /// <summary>
@@ -94,7 +92,7 @@ namespace KVASSNS
         /// Amount of messages in the quere.
         /// </summary>
         /// <returns></returns>
-        public static int Count()
+        private static int Count()
         {
             return _failMessages.Count;
         }
@@ -144,7 +142,6 @@ namespace KVASSNS
         private static int _countOfLines = 0;
 
 
-
         class Triplet
         {
             public Triplet(string message, string note, bool? paragraph = null)
@@ -158,6 +155,7 @@ namespace KVASSNS
             public String Note { get; }
             public bool? Paragraph { get; }
         }
+
 
         //private static void ShowDialog(string message = "You can't afford to launch this vessel.",
         //    string close_title = "Unable to Launch", float height = 100f)

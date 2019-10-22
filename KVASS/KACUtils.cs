@@ -1,27 +1,24 @@
-﻿
+﻿using KSP.Localization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using static KVASS_KACWrapper.KACWrapper.KACAPI;
-using KVASS_KACWrapper;
+using static KVASSNS.KACWrapper.KACAPI;
 
-
-using KSP.Localization;
-using static KVASSNS.Logging;
 
 namespace KVASSNS
 {
     public static class KACUtils
     {
 
-        public static string AlarmTitle(string shipName) 
-            => Localizer.Format("#KVASS_alarm_title_prefix") + " " + shipName;
+        public static string AlarmTitle(string shipName)
+        {
+            return Localizer.Format("#KVASS_alarm_title_prefix") + " " + Localizer.Format(shipName);
+        }
         public static string ShipName(string AlarmTitle)
         {
             if (String.IsNullOrEmpty(AlarmTitle)) return "";
 
-            return AlarmTitle?.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
+            return AlarmTitle.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
         }
 
         /// <summary>
@@ -35,51 +32,36 @@ namespace KVASSNS
         {
             if (a == null) throw new ArgumentNullException(nameof(a));
 
-            double time_now = HighLogic.CurrentGame.flightState.universalTime;
+            double time_now = Utils.UT(); // HighLogic.CurrentGame.UniversalTime;  //HighLogic.CurrentGame.flightState.universalTime;
             double alarmTime = a.AlarmTime;
+            Logging.Log("time_now: " + time_now + " alarmTime: " + alarmTime);
 
             return alarmTime - time_now;
         }
 
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="a"></param>
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <returns></returns>
-        static public bool IsAlarmFinished(KACAlarm a)
-        {
-            if (a == null) throw new ArgumentNullException(nameof(a));
-
-            return Remaining(a) < 0.0;
-        }
-
         static public bool Finished(this KACAlarm a)
         {
-            if (a == null) throw new ArgumentNullException(nameof(a));
+            if (a == null) return false; //throw new ArgumentNullException(nameof(a));
 
             return Remaining(a) < 0.0;
         }
 
-
         /// <summary>
-        /// Get Alarm by vessel name. Return Alarm or null.
+        /// Get Alarm by title. Return Alarm or null.
         /// </summary>
-        /// <param name="vesselName"></param>
+        /// <param name="alarmTitle"></param>
         /// <returns></returns>
-        static public KACAlarm GetAlarm(string vesselName)
+        static public KACAlarm GetAlarm(string alarmTitle)
         {
             if (KACWrapper.APIReady)
             {
-                KACAlarm a = KACWrapper.KAC.Alarms.FirstOrDefault(z => z.Name == vesselName);
+                KACAlarm a = KACWrapper.KAC.Alarms.FirstOrDefault(z => z.Name == alarmTitle);
 
                 if (a != null)
                 {
                     return a;
                 }
             }
-
             return null;
         }
 
@@ -99,6 +81,7 @@ namespace KVASSNS
             return false;
         }
 
+
         static public IEnumerable<KACAlarm> GetPlanningActiveAlarms()
         {
             if (!KACWrapper.APIReady) return new List<KACAlarm>();
@@ -110,6 +93,7 @@ namespace KVASSNS
 
             return alarms;
         }
+
 
     }
 }

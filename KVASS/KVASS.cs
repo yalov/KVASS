@@ -1,21 +1,22 @@
 ﻿using KSP.Localization;
 using KSP.UI;
-using KVASS_KACWrapper;
-using PreFlightTests;
+using KSP.UI.Screens;
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEngine;
-
+using UnityEngine.UI;
+using static KVASSNS.KACWrapper.KACAPI;
 using static KVASSNS.Logging;
-using static KVASS_KACWrapper.KACWrapper.KACAPI;
+
 
 namespace KVASSNS
 {
     // https://github.com/linuxgurugamer/KCT was used there
-    [KSPAddon(KSPAddon.Startup.FlightAndEditor /*FlightEditorAndKSC*/, false)]
+    [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     public class KVASS : MonoBehaviour
     {
         static KVASSSimSettings settingsSim;
@@ -25,21 +26,16 @@ namespace KVASSNS
 
         private bool eventsRegistered = false;
 
+        ShipTemplate data;
+
         public void Awake()
         {
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
             {
                 Log(HighLogic.CurrentGame.Mode + " mode is not supported.");
-                Destroy(this);
-                return;
+                Destroy(this); return;
             }
-
-            if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
-            {
-                Destroy(this);
-                return;
-            }
-
+            
 
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASSSimSettings>();
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
@@ -51,62 +47,62 @@ namespace KVASSNS
             {
                 eventsRegistered = true;
                 GameEvents.onEditorStarted.Add(ResetEditorLaunchButtons);
+                GameEvents.onGUILaunchScreenSpawn.Add(OnGUILaunchScreenSpawn);
+                GameEvents.onGUILaunchScreenVesselSelected.Add(OnGUILaunchScreenVesselSelected);
 
-                // in the awake?
-                //Logger.Log("Adding button hooks");
-                //EditorLogic.fetch.saveBtn.onClick.AddListener(() => updateSavedVesselCache());
-                //EditorLogic.fetch.launchBtn.onClick.AddListener(() => updateSavedVesselCache(SaveButtonSource.LAUNCH));
             }
+        }
+
+        private void OnGUILaunchScreenVesselSelected(ShipTemplate dt)
+        {
+            this.data = dt;
+            Log("OnGUILaunchScreenVesselSelected: dt.filename: " + dt.filename); // Empty
+            Log("OnGUILaunchScreenVesselSelected: dt.shipName: " + dt.shipName); // ok
         }
 
         public void Start()
         {
-            
+            Log("Start");
             KACWrapper.InitKACWrapper();
 
             if (KACWrapper.APIReady && settingsPlan.Queue)
                 KACWrapper.KAC.onAlarmStateChanged += KAC_onAlarmStateChanged;
 
-            if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+            if (HighLogic.LoadedScene == GameScenes.EDITOR)
+            {
+
+                // already have 
+                // GameEvents.onEditorStarted.Add(ResetEditorLaunchButtons)
+                // but better safe than sorry
+                StartCoroutine(ResetEditorLaunchButtons_WaitedCoroutine());
+            }
+
+            // remove alarm
+            else if (HighLogic.LoadedScene == GameScenes.FLIGHT)
             {
                 string name = FlightGlobals.ActiveVessel.GetDisplayName();
 
-                if (settingsPlan.Enable
+                if (KACWrapper.APIReady && settingsPlan.Enable
                     && !SimulationRegEx.IsMatch(name)
                 //&& !(settingsPlan.IgnoreSPH && FlightGlobals.fetch.activeVessel. == EditorFacility.SPH)
-                && KACWrapper.APIReady)
+                )
                 {
-                    string alarmTitle = KACUtils.AlarmTitle(name);
+                    var alarm = KACUtils.GetAlarm(KACUtils.AlarmTitle(name));
 
-                    KACAlarm alarm = KACUtils.GetAlarm(alarmTitle);
-                    
                     if (alarm.Finished())
                     {
                         bool success = KACUtils.RemoveAlarm(alarm.ID);
                         Log("Removing alarm, success:{0}", success);
                     }
-
-                    Destroy(this);
                 }
-                return;
-            }
-
-            try 
-            {
-                //Log("try to start coroutine");
-                //StartCoroutine(ResetEditorLaunchButtons_Coroutine());
-
-                StartCoroutine(ResetEditorLaunchButtons_Wait());
-            }
-            catch (Exception)
-            {
-                Log("Cannot start coroutine");
             }
         }
 
         public void OnDisable()
         {
             GameEvents.onEditorStarted.Remove(ResetEditorLaunchButtons);
+            GameEvents.onGUILaunchScreenSpawn.Remove(OnGUILaunchScreenSpawn);
+            GameEvents.onGUILaunchScreenVesselSelected.Remove(OnGUILaunchScreenVesselSelected);
         }
 
         /// <summary>
@@ -116,7 +112,6 @@ namespace KVASSNS
         /// <returns></returns>
         IEnumerator ResetEditorLaunchButtons_Coroutine()
         {
-            Log("Coroutine()");
             while (true)
             {
                 Log("Coroutine()");
@@ -124,29 +119,87 @@ namespace KVASSNS
                 yield return new WaitForSeconds(0.5f);
             }
         }
+
+        private void OnGUILaunchScreenSpawn(GameEvents.VesselSpawnInfo e)
+        {
+            
+            // onGUILaunchScreenSpawn is called before VesselSpawnDialog's Start() happens, 
+            // but we want to wait after it's done so that we can replace
+            StartCoroutine(ResetSpawnDialogLaunchButton_WaitedCoroutine(e));
+        }
+
         /// <summary>
         /// Coroutine to reset the launch button handlers second time in 0.3 sec. after start. 
         /// </summary>
         /// <returns></returns>
-        IEnumerator ResetEditorLaunchButtons_Wait()
+        IEnumerator ResetEditorLaunchButtons_WaitedCoroutine()
         {
-            Log("Pouring...");
             yield return new WaitForSeconds(0.3f);
 
             ResetEditorLaunchButtons();
         }
 
+
+        IEnumerator ResetSpawnDialogLaunchButton_WaitedCoroutine(GameEvents.VesselSpawnInfo vesselSpawnInfo)
+        {
+            yield return new WaitForSeconds(0.5f);
+
+            ResetSpawnDialogLaunchButton(vesselSpawnInfo);
+        }
+
+
+        public void ResetSpawnDialogLaunchButton(GameEvents.VesselSpawnInfo vesselSpawnInfo)
+        {
+            Log("ResetSpawnDialogLaunchButton");
+
+            //UIListSorter sorter = VesselSpawnDialog.Instance.vesselListSorter;
+
+            if (VesselSpawnDialog.Instance != null)
+            {
+                //FieldInfo craftListInfo = typeof(VesselSpawnDialog).GetField("vesselDataItemList", BindingFlags.NonPublic | BindingFlags.Instance);
+                //object obj = craftListInfo.GetValue(VesselSpawnDialog.Instance);
+                //List<CraftEntry> craftList = obj as List<CraftEntry>;
+
+                //UnityEngine.UI.Button button = VesselSpawnDialog.Instance.GetType()
+                //    .GetPublicValue<UnityEngine.UI.Button>("buttonLaunch", VesselSpawnDialog.Instance);
+
+                //A bit of reflection because buttonLaunch in VesselSpawnDialog is private :/
+                FieldInfo buttonFieldInfo = typeof(VesselSpawnDialog).GetField("buttonLaunch", BindingFlags.NonPublic | BindingFlags.Instance);
+                if (buttonFieldInfo == null) return;
+
+                Button Greenbutton = buttonFieldInfo.GetValue(VesselSpawnDialog.Instance) as Button;
+                if (Greenbutton == null) return;
+
+                Greenbutton.onClick.RemoveAllListeners(); ////originalAction: VesselSpawnDialog.Instance.ButtonLaunch
+                Greenbutton.onClick.AddListener(() => { LaunchClickListenerVesselSpawnDialog(vesselSpawnInfo, vesselSpawnInfo.callingFacility.name); }); 
+
+                if (settingsGame.AllowOtherLaunchSites)
+                {
+                    UILaunchsiteController controller = UnityEngine.Object.FindObjectOfType<UILaunchsiteController>();
+                    if (controller == null) return;
+
+                    object items = controller.GetType()?.GetPrivateMemberValue("launchPadItems", controller, 4);
+                    if (items == null) return;
+
+                    IEnumerable list = items as IEnumerable;
+
+                    foreach (object site in list)
+                    {
+                        Button b = site.GetType().GetPublicValue<Button>("buttonLaunch", site);
+                        if (b != null)
+                        {
+                            b.onClick.RemoveAllListeners();
+                            string siteName = site.GetType().GetPublicValue<string>("siteName", site);
+                            b.onClick.AddListener(() => { LaunchClickListenerVesselSpawnDialog(vesselSpawnInfo, siteName); });
+                        }
+                    }
+                }
+            }
+        }
+
         // CANNOT be marked as static
         public void ResetEditorLaunchButtons()
-
         {
-            //Log("Chug! Chug! Chug!");
-            //Log("ResetEditorLaunchButtons");
-            //UnityEngine.UI.Button.ButtonClickedEvent c = new UnityEngine.UI.Button.ButtonClickedEvent();
-            //c.AddListener(OnLoadClick);
-            //EditorLogic.fetch.launchBtn.onClick = c;
-
-            // possible revert to previous way?
             UnityEngine.UI.Button greenButton = EditorLogic.fetch.launchBtn;
             greenButton.onClick.RemoveAllListeners();
             greenButton.onClick.AddListener(() => { LaunchClickListener(null); });
@@ -203,32 +256,117 @@ namespace KVASSNS
             }
         }
 
-        //Replace the default action to LaunchListener.
-        static void LaunchClickListener(string launchSite)
+        void LaunchClickListenerVesselSpawnDialog(GameEvents.VesselSpawnInfo vsi, string launchSite)
         {
-            //Log("KVASS Launch Sequence");
-            //Log("launchSite param: " + launchSite);
+            
+            Log("LaunchClickListenerVesselSpawnDialog");
+
+            // data
+            //ShipConstruct ship = new ShipConstruct(;
+            //string ksp_root = Directory.GetParent(KSPUtil.ApplicationRootPath).FullName;
+            //string[] files = Directory.GetFiles(Utils.PathJoin(ksp_root, "saves", vsi.craftSubfolder), "*.craft", SearchOption.AllDirectories);
+
+            //String path = Utils.PathJoin(KSPUtil.ApplicationRootPath, "saves", HighLogic.SaveFolder, "Ships", vsi.craftSubfolder, data.shipName+ ".craft" );
+            String path = Path.Combine(KSPUtil.ApplicationRootPath, "saves", HighLogic.SaveFolder, "Ships", vsi.craftSubfolder, data.shipName + ".craft");
+            
+
+            Log("path" + path);
+            
+
+            bool isVAB = (vsi.callingFacility.facilityType == EditorFacility.VAB);
+
+            // TODO: 
+            string flag = HighLogic.CurrentGame.flagURL; // ship.missionFlag; // ;
+
+            string VesselName = data.shipName;
+            Log("data.shipName: " + data.shipName);
+
+            VesselCrewManifest manifest = KSP.UI.CrewAssignmentDialog.Instance.GetManifest();
+
+            if (manifest != null)
+                Log("manifest.CrewCount: " + manifest.CrewCount);
+            
+            //manifest = HighLogic.CurrentGame.CrewRoster.DefaultCrewForVessel(shipNode, null, false);
+            
+            Log("launchSite: " + launchSite);
+
+            
+            if (settingsSim.Enable
+                && !(settingsSim.IgnoreSPH && !isVAB)
+                && SimulationRegEx.IsMatch(VesselName))
+            {
+                Log("Simulation");
+                bool success = SimulationPurchase();
+
+                if (success)
+                    FlightDriver.StartWithNewLaunch(path, flag, launchSite, manifest);
+            }
+            else if (settingsPlan.Enable
+                && !(settingsPlan.IgnoreSPH && !isVAB)
+                && KACWrapper.APIReady)
+            {
+                Log("Planning");
+                string alarmTitle = KACUtils.AlarmTitle(VesselName);
+                var alarm = KACUtils.GetAlarm(alarmTitle);
+
+                if (alarm == null)
+                {
+                    // Alarm Is Not Found, Creating
+                    float cost = data.totalCost;
+                    float mass = data.totalMass;
+                    CreateNewAlarm(alarmTitle, cost, mass);
+                }
+                else if (alarm.Finished())
+                {
+                    Log("Planning launching");
+                    FlightDriver.StartWithNewLaunch(path, flag, launchSite, manifest);
+                }
+                else
+                {
+                    Messages.QuickPost(Localizer.Format("#KVASS_alarm_not_finished", alarmTitle));
+                }
+
+            }
+            else
+            {
+                Log("launch");
+                EditorLogic.fetch.launchVessel();
+            }
+        }
+
+        //Replace the default action to LaunchListener.
+        void LaunchClickListener(string launchSite)
+        {
+            Log("LaunchClickListener");
+            Log("launchSite param: " + launchSite);
 
             if (string.IsNullOrEmpty(launchSite))
             {
                 launchSite = EditorLogic.fetch.launchSiteName;
             }
-            //Log("launchSite reseted: " + launchSite);
+            Log("launchSite reseted: " + launchSite);
 
 
-            if (settingsSim.Enable
-                && !(settingsSim.IgnoreSPH && EditorDriver.editorFacility == EditorFacility.SPH)
+            if (
+                settingsSim.Enable
+                && 
+                 !(settingsSim.IgnoreSPH && EditorDriver.editorFacility == EditorFacility.SPH)
+                
                 && SimulationRegEx.IsMatch(EditorLogic.fetch.ship.shipName))
             {
+                Log("Simulation");
                 bool success = SimulationPurchase();
 
                 if (success)
                     EditorLogic.fetch.launchVessel(launchSite);
             }
             else if (settingsPlan.Enable
-                && !(settingsPlan.IgnoreSPH && EditorDriver.editorFacility == EditorFacility.SPH)
+                && 
+                 !(settingsPlan.IgnoreSPH && EditorDriver.editorFacility == EditorFacility.SPH)
+                
                 && KACWrapper.APIReady)
             {
+                Log("Planning");
                 string shipName = EditorLogic.fetch.ship.shipName;
                 string alarmTitle = KACUtils.AlarmTitle(shipName);
 
@@ -237,9 +375,11 @@ namespace KVASSNS
                 if (alarm == null)
                 {
                     // Alarm Is Not Found, Creating
-                    CreateNewAlarm(alarmTitle);
+                    float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+                    float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
+                    CreateNewAlarm(alarmTitle, cost, mass);
                 }
-                else if (KACUtils.IsAlarmFinished(alarm))
+                else if (alarm.Finished())
                 {
                     EditorLogic.fetch.launchVessel(launchSite);
                 }
@@ -255,7 +395,7 @@ namespace KVASSNS
             }
         }
 
-        static string LoadRegExpPattern()
+        string LoadRegExpPattern()
         {
             string[] RegExs = { "^.?test" };
 
@@ -276,7 +416,7 @@ namespace KVASSNS
         /// <summary>
         /// return Boolean success
         /// </summary>
-        static bool SimulationPurchase()
+        bool SimulationPurchase()
         {
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
             {
@@ -363,7 +503,7 @@ namespace KVASSNS
         /// <param name="value"></param>
         /// <param name="addends"></param>
         /// <returns></returns>
-        static string GetComparingFormat(double value, params double[] addends)
+        string GetComparingFormat(double value, params double[] addends)
         {
             if (addends.Length == 0) return "";
             const double Eps = 1e-10;
@@ -392,24 +532,25 @@ namespace KVASSNS
             return "";
         }
 
-        static string CreateNewAlarm(string title)
+        string CreateNewAlarm(string title, float cost, float mass)
         {
-            double time = CalcAlarmTime();
+
+            double time = CalcAlarmTime(cost, mass);
 
             string aID = "";
             if (KACWrapper.APIReady)
             {
-                double UT = HighLogic.CurrentGame.flightState.universalTime;
+                double ut = Utils.UT(); // HighLogic.CurrentGame.UniversalTime; // HighLogic.CurrentGame.flightState.universalTime;
                 aID = KACWrapper.KAC.CreateAlarm(
                     KACWrapper.KACAPI.AlarmTypeEnum.Raw,
                     title,
-                    UT + time);
+                    ut + time);
 
 
                 if (!String.IsNullOrEmpty(aID))
                 {
                     //if the alarm was made get the object so we can update it
-                    KACAlarm alarm = KACWrapper.KAC.Alarms.First(z => z.ID == aID);
+                    var alarm = KACWrapper.KAC.Alarms.First(z => z.ID == aID);
 
                     // a.Remaining doesn't work in the VAB/SPH
 
@@ -453,10 +594,12 @@ namespace KVASSNS
             return aID;
         }
 
-        static double CalcAlarmTime()
+        double CalcAlarmTime(float cost, float mass)
         {
-            float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
-            float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
+            //float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+            //float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
+
+            Log("cost: " + cost + "mass: " + mass);
             bool career = HighLogic.CurrentGame.Mode == Game.Modes.CAREER;
             double time;
 
@@ -465,14 +608,14 @@ namespace KVASSNS
             else
                 time = mass * settingsPlan.ScienceSeconds;
 
-            string log_str = "";
+            string log_str = String.Format("PlanTime: {0:F1}", time / KSPUtil.dateTimeFormatter.Day);
 
             if (settingsPlan.RepSpeedUp && career)
             {
                 int currRep = Math.Max((int)Reputation.CurrentRep, 0);
-                double lines = currRep / settingsPlan.RepToNextLevel + 1;
+                int lines = currRep / settingsPlan.RepToNextLevel + 1;
                 time /= lines;
-                log_str += ", RepSpeedUp: x" + lines;
+                log_str += " / " + lines;
             }
 
             if (settingsPlan.KerbSpeedUp)
@@ -480,42 +623,55 @@ namespace KVASSNS
                 int availableKerbs = HighLogic.CurrentGame.CrewRoster.GetAvailableCrewCount();
 
                 int teams = availableKerbs / settingsPlan.KerbToNextLevel + 1;
-
                 time /= teams;
-                log_str += ", CrewSpeedUp: x" + teams;
+                log_str += " / " + teams;
+            }
+
+
+            if (settingsPlan.SciSpeedUp)
+            {
+                int currScience = Math.Max((int)ResearchAndDevelopment.Instance.Science, 0);
+
+                int scilevel = currScience / settingsPlan.SciToNextLevel + 1;
+                time /= scilevel;
+                log_str += " / " + scilevel;
             }
 
             // The last one. The SpeedUps do not affect. 
             if (settingsPlan.Bureaucracy)
-                time += settingsPlan.BureaucracyTime * KSPUtil.dateTimeFormatter.Day;
+            {
+                double bureaucracy_increment = settingsPlan.BureaucracyTime * KSPUtil.dateTimeFormatter.Day;
+                time += bureaucracy_increment;
+                log_str += " + " + settingsPlan.BureaucracyTime;
+            }
 
-            log_str = String.Format("PlanTime: {0:F1} days", time/ KSPUtil.dateTimeFormatter.Day) + log_str;
+            log_str += String.Format(" = {0:F1} days", time / KSPUtil.dateTimeFormatter.Day);
+            
+            if (settingsPlan.ShowMessageSpeedUps)
+                Messages.QuickPost(log_str);
+
             Log(log_str);
 
             return time;
         }
 
-        void KAC_onAlarmStateChanged(KACWrapper.KACAPI.AlarmStateChangedEventArgs e)
+        void KAC_onAlarmStateChanged(AlarmStateChangedEventArgs e)
         {
             if (e.eventType == KACAlarm.AlarmStateEventsEnum.Deleted)
             {
 
                 // e.alarm is still in the list
                 var deleting_alarm = e.alarm;
-                if (deleting_alarm == null || KACUtils.Remaining(deleting_alarm) <= 0) return;
-
-                //Log("    Deleting: " + deleting_alarm.Name);
+                if (deleting_alarm == null || deleting_alarm.Finished()) return;
 
                 var alarms = KACUtils.GetPlanningActiveAlarms().OrderBy(z => z.AlarmTime).ToList();
-
-                //alarms.ForEach(z => Log(z.Name+" " +z.AlarmTime));
 
                 int del_index = alarms.FindIndex(z => z.ID == deleting_alarm.ID);
 
                 double planning_UT_start;
 
                 if (del_index == 0)
-                    planning_UT_start = HighLogic.CurrentGame.flightState.universalTime; //Planetarium.GetUniversalTime();
+                    planning_UT_start = Utils.UT(); // HighLogic.CurrentGame.UniversalTime; //HighLogic.CurrentGame.flightState.universalTime; //Planetarium.GetUniversalTime();
                 else
                     planning_UT_start = alarms[del_index - 1].AlarmTime;
 

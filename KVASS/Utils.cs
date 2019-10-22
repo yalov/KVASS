@@ -19,6 +19,26 @@ namespace KVASSNS
                 newVal = ((System.Reflection.PropertyInfo)member).GetValue(sourceObject, null);
             return newVal;
         }
+
+
+        //takes any number of strings and returns them joined together with Linux specific path divider, ie:
+        //Paths.joined("follow", "the", "yellow", "brick", "road") -> "follow/the/yellow/brick/road 
+        static public string PathJoin(params string[] paths)
+        {
+            return String.Join("/", paths).Replace("\\", "/");
+        }
+
+        static public double UT()
+        {
+            if (HighLogic.LoadedSceneIsEditor)
+            {
+                return HighLogic.CurrentGame.flightState.universalTime;
+            }
+            else
+            {
+                return Planetarium.GetUniversalTime();
+            }
+        }
     }
 
     public static class TypeExtensions

@@ -9,8 +9,9 @@ using System.Text;
 // TODO: Change this namespace to something specific to your plugin here.
 //EG:
 // namespace MyPlugin_KACWrapper
-namespace KVASS_KACWrapper
+namespace KVASSNS
 {
+
     ///////////////////////////////////////////////////////////////////////////////////////////
     // BELOW HERE SHOULD NOT BE EDITED - this links to the loaded KAC module without requiring a Hard Dependancy
     ///////////////////////////////////////////////////////////////////////////////////////////
@@ -74,10 +75,11 @@ namespace KVASS_KACWrapper
             LogFormatted("Attempting to Grab KAC Types...");
 
             //find the base type
-            KACType = AssemblyLoader.loadedAssemblies
-                .Select(a => a.assembly.GetExportedTypes())
-                .SelectMany(t => t)
-                .FirstOrDefault(t => t.FullName == "KerbalAlarmClock.KerbalAlarmClock");
+            AssemblyLoader.loadedAssemblies.TypeOperation(t =>
+            {
+                if (t.FullName == "KerbalAlarmClock.KerbalAlarmClock")
+                    KACType = t;
+            });
 
             if (KACType == null)
             {
@@ -563,7 +565,8 @@ namespace KVASS_KACWrapper
                 Crew,
                 EarthTime,
                 Contract,
-                ContractAuto
+                ContractAuto,
+                ScienceLab
             }
 
             public enum AlarmActionEnum

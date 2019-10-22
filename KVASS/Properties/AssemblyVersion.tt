@@ -28,7 +28,14 @@
 	int i2 = 0;
 	string s;
 
-	string versionfile =  @"C:\Users\User\Games\Development\KVASS\KVASS.version";
+	// Make sure that path to .version is: 
+	// SomeFolder/NAME_OF_MOD/NAME_OF_MOD.version
+	//
+	
+	string RootDirectory = System.IO.Path.GetDirectoryName(Host.TemplateFile) + @"\..\..\";
+	string name = new DirectoryInfo(RootDirectory).Name;
+	string versionfile = RootDirectory + name + ".version";
+
 	if (!File.Exists(versionfile))
 	{
 		Write("File: " + versionfile + " missing\n");		

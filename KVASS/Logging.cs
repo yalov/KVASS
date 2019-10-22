@@ -1,6 +1,7 @@
 ﻿using System;
-using UnityEngine;
 using System.Globalization;
+using UnityEngine;
+
 
 namespace KVASSNS
 {
@@ -9,12 +10,22 @@ namespace KVASSNS
         private const string PREFIX = "<color=green>[KVASS]</color> ";
         private const bool time = false;
 
-        public static void Log<T>(T msg, params object[] args)
+        public static void Log(String msg, params object[] args)
         {
             Debug.Log(PREFIX +
-                (time ? DateTime.Now.ToString("HH:mm:ss.f ", CultureInfo.InvariantCulture) : "") +
-                String.Format(CultureInfo.InvariantCulture, msg.ToString(), args)
+                (time ? DateTime.Now.ToString("HH:mm:ss.f ") : "") +
+                String.Format(msg ?? "null", args)
                 );
+        }
+
+        public static void Log(object arg, params object[] args)
+        {
+            String log = PREFIX +
+                (time ? DateTime.Now.ToString("HH:mm:ss.f ") : "") + arg;
+
+            foreach (var a in args) log += ", " + a;
+
+            Debug.Log(log);
         }
     }
 }

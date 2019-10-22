@@ -1,5 +1,13 @@
 ChangeLog:
 
+TODO:
+Launchpad menu - onclick override
+
+## Version 0.12.0 (unreleased)
+ * add Easy/normal/hard DifficultyPresets
+ * Recompile for 1.8
+
+
 ## Version 0.11.0
  * supports MH Launch buttons
  * options to ignore SPH. Planes and trucks are built without planning or simulation.
