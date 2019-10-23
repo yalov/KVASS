@@ -4,8 +4,8 @@
   "DOWNLOAD": "https://github.com/yalov/KVASS/releases",
   "VERSION": {
     "MAJOR": 0,
-    "MINOR": 11,
-    "PATCH": 14,
+    "MINOR": 12,
+    "PATCH": 0,
     "BUILD": 0
   },
   "KSP_VERSION": {

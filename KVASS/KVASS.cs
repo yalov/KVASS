@@ -14,7 +14,7 @@ using static KVASSNS.Logging;
 
 namespace KVASSNS
 {
-    // https://github.com/linuxgurugamer/KCT was used there
+    // code from https://github.com/linuxgurugamer/KCT was used there
     [KSPAddon(KSPAddon.Startup.FlightEditorAndKSC, false)]
     public class KVASS : MonoBehaviour
     {
@@ -61,7 +61,7 @@ namespace KVASSNS
 
         public void Start()
         {
-            Log("Start");
+            //Log("Start");
             KACWrapper.InitKACWrapper();
 
             if (HighLogic.LoadedScene == GameScenes.EDITOR)
@@ -110,7 +110,7 @@ namespace KVASSNS
         {
             while (true)
             {
-                Log("Coroutine()");
+                //Log("Coroutine()");
                 ResetBothLaunchButton(null);
                 yield return new WaitForSeconds(0.5f);
             }
@@ -196,7 +196,7 @@ namespace KVASSNS
             {
                 String path = Path.Combine(KSPUtil.ApplicationRootPath, "saves", HighLogic.SaveFolder, "Ships",
                 craftSubfolder, Localizer.Format(data.shipName) + ".craft");
-                Log("path: " + path);
+                //Log("path: " + path);
                 if (!File.Exists(path)) 
                     path = Path.Combine(KSPUtil.ApplicationRootPath, "Ships",
                 craftSubfolder, Localizer.Format(data.shipName) + ".craft");
@@ -237,7 +237,7 @@ namespace KVASSNS
                 && !(settingsSim.IgnoreSPH && !isVAB)
                 && SimulationRegEx.IsMatch(VesselName))
             {
-                Log("Simulation");
+                //Log("Simulation");
                 bool success = SimulationPurchase();
 
                 if (success)
@@ -248,7 +248,7 @@ namespace KVASSNS
                 && !(settingsPlan.IgnoreSPH && !isVAB)
                 && KACWrapper.APIReady)
             {
-                Log("Planning");
+                //Log("Planning");
                 string alarmTitle = KACUtils.AlarmTitle(VesselName);
                 var alarm = KACUtils.GetAlarm(alarmTitle);
 
@@ -271,7 +271,7 @@ namespace KVASSNS
                 }
                 else if (alarm.Finished())
                 {
-                    Log("Planning: launching");
+                    //Log("Planning: launching");
                     Launch(launchSite, craftSubfolder);
                 }
                 else
@@ -465,7 +465,7 @@ namespace KVASSNS
             //float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
             //float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
 
-            Log("cost: " + cost + "mass: " + mass);
+            //Log("cost: " + cost + "mass: " + mass);
             bool career = HighLogic.CurrentGame.Mode == Game.Modes.CAREER;
             double time;
 

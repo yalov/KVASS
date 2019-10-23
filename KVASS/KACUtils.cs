@@ -34,7 +34,7 @@ namespace KVASSNS
 
             double time_now = Utils.UT(); // HighLogic.CurrentGame.UniversalTime;  //HighLogic.CurrentGame.flightState.universalTime;
             double alarmTime = a.AlarmTime;
-            Logging.Log("time_now: " + time_now + " alarmTime: " + alarmTime);
+            //Logging.Log("time_now: " + time_now + " alarmTime: " + alarmTime);
 
             return alarmTime - time_now;
         }

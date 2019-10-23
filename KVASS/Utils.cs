@@ -20,14 +20,6 @@ namespace KVASSNS
             return newVal;
         }
 
-
-        //takes any number of strings and returns them joined together with Linux specific path divider, ie:
-        //Paths.joined("follow", "the", "yellow", "brick", "road") -> "follow/the/yellow/brick/road 
-        static public string PathJoin(params string[] paths)
-        {
-            return String.Join("/", paths).Replace("\\", "/");
-        }
-
         static public double UT()
         {
             if (HighLogic.LoadedSceneIsEditor)

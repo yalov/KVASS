@@ -137,10 +137,10 @@ namespace KVASSNS
         public int KerbToNextLevel { get; private set; } = 7;
 
         [GameParameters.CustomParameterUI("#KVASS_plan_enable_sci", toolTip = "#KVASS_plan_enable_sci_tooltip")]
-        public bool SciSpeedUp { get; private set; } = true;
+        public bool SciSpeedUp { get; private set; } = false;
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_sci", toolTip = "#KVASS_plan_sci_tooltip", 
-            minValue = 50, maxValue = 5000, stepSize = 50)]
+            minValue = 100, maxValue = 10000, stepSize = 100)]
         public int SciToNextLevel { get; private set; } = 2500;
 
 

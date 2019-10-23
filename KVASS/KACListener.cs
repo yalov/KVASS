@@ -13,12 +13,12 @@ namespace KVASSNS
     {
         public void Start()
         {
-            Log("KACListener: Start");
+            //Log("KACListener: Start");
             KACWrapper.InitKACWrapper();
 
             var settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
 
-            if (KACWrapper.APIReady && settingsPlan.Queue)
+            if (settingsPlan.Enable && settingsPlan.Queue && KACWrapper.APIReady)
                 KACWrapper.KAC.onAlarmStateChanged += KAC_onAlarmStateChanged;
 
         }
