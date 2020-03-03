@@ -2,16 +2,20 @@
   "NAME": "KVASS",
   "URL": "https://raw.githubusercontent.com/yalov/KVASS/master/KVASS.version",
   "DOWNLOAD": "https://github.com/yalov/KVASS/releases",
+  "GITHUB": {
+    "USERNAME": "yalov",
+    "REPOSITORY": "KVASS"
+  },
   "VERSION": {
     "MAJOR": 0,
-    "MINOR": 12,
+    "MINOR": 13,
     "PATCH": 0,
     "BUILD": 0
   },
   "KSP_VERSION": {
     "MAJOR": 1,
-    "MINOR": 8,
-    "PATCH": 0
+    "MINOR": 9,
+    "PATCH": 1
   },
   "KSP_VERSION_MIN": {
     "MAJOR": 1,
@@ -20,7 +24,7 @@
   },
   "KSP_VERSION_MAX": {
     "MAJOR": 1,
-    "MINOR": 8,
+    "MINOR": 9,
     "PATCH": 9
   }
 }

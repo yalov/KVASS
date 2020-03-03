@@ -1,5 +1,6 @@
 ﻿using KSP.Localization;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace KVASSNS
@@ -150,24 +151,12 @@ namespace KVASSNS
         [GameParameters.CustomIntParameterUI("#KVASS_plan_bureaucracy", minValue = 1, maxValue = 142, stepSize = 1)]
         public int BureaucracyTime { get; private set; } = 1;
 
-       
-
-        [GameParameters.CustomParameterUI("#KVASS_plan_kill_timewarp", toolTip = "#KVASS_plan_kill_timewarp_tooltip")]
-        public bool KillTimeWarp { get; private set; } = false;
-
-        [GameParameters.CustomParameterUI("#KVASS_plan_queue", toolTip = "#KVASS_plan_queue_tooltip")]
-        public bool Queue { get; private set; } = true;
-
-        [GameParameters.CustomParameterUI("#KVASS_plan_message_speedUps", toolTip = "#KVASS_plan_message_speedUps_tooltip")]
-        public bool ShowMessageSpeedUps { get; private set; } = false;
-
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {
-
             switch (preset)
             {
                 case GameParameters.Preset.Easy:   
-                    CareerSeconds = 10; ScienceSeconds = 4; Bureaucracy = false; Queue = false; break;
+                    CareerSeconds = 10; ScienceSeconds = 4; Bureaucracy = false; break;
                 case GameParameters.Preset.Normal: 
                     CareerSeconds = 10; ScienceSeconds = 4; break;
                 case GameParameters.Preset.Hard:   
@@ -176,22 +165,21 @@ namespace KVASSNS
         }
 
         public override bool Enabled(MemberInfo member, GameParameters parameters)
-        {
+        {   
             return true;
         }
 
         public override bool Interactible(MemberInfo member, GameParameters parameters)
         {
+
+            KVASSPlanSettings2.interactible = Enable;
+
             if (member == null) return false;
 
             if (member.Name == "IgnoreSPH"
                 || member.Name == "CareerSeconds" || member.Name == "ScienceSeconds"
                 || member.Name == "RepSpeedUp" || member.Name == "KerbSpeedUp" || member.Name == "SciSpeedUp"
                 || member.Name == "Bureaucracy"
-                || member.Name == "KillTimeWarp"
-                || member.Name == "Queue"
-                || member.Name == "ShowMessageSpeedUps"
-
                 )
                 return Enable;
 
@@ -213,6 +201,74 @@ namespace KVASSNS
         public override IList ValidValues(MemberInfo member)
         {
             return null;
+        }
+    }
+
+    public class KVASSPlanSettings2 : GameParameters.CustomParameterNode
+    {
+        public override string Title { get { return Localizer.Format("#KVASS_plan_title"); } }
+        public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.CAREER | GameParameters.GameMode.SCIENCE; } }
+        public override string Section { get { return "KVASS"; } }
+        public override string DisplaySection { get { return "KVASS"; } }
+        public override int SectionOrder { get { return 3; } }
+        public override bool HasPresets { get { return false; } }
+
+        internal static bool interactible = true;
+
+
+
+        [GameParameters.CustomParameterUI("#KVASS_plan_kill_timewarp", toolTip = "#KVASS_plan_kill_timewarp_tooltip")]
+        public bool KillTimeWarp { get; private set; } = false;
+
+        [GameParameters.CustomParameterUI("#KVASS_plan_queue", toolTip = "#KVASS_plan_queue_tooltip")]
+        public bool Queue { get; private set; } = true;
+
+        [GameParameters.CustomParameterUI("#KVASS_plan_queue_append", toolTip = "#KVASS_plan_queue_append_tooltip")]
+        public bool QueueAppend { get; private set; } = true;
+
+        [GameParameters.CustomParameterUI("#KVASS_plan_message_speedUps", toolTip = "#KVASS_plan_message_speedUps_tooltip")]
+        public string ShowMessageSpeedUps { get; private set; } = Localizer.Format("#KVASS_plan_message_No");
+
+        public override void SetDifficultyPreset(GameParameters.Preset preset)
+        {
+
+            switch (preset)
+            {
+                case GameParameters.Preset.Easy:
+                    Queue = false; break;
+            }
+        }
+
+        public override bool Interactible(MemberInfo member, GameParameters parameters)
+        {
+            if (member == null) return false;
+
+            if (member.Name == "QueueAppend")
+                return Queue && interactible;
+            else
+                return interactible;
+        }
+
+        public override IList ValidValues(MemberInfo member)
+        {
+            if (member == null) return null;
+
+            if (member.Name == "ShowMessageSpeedUps")
+            {
+                List<string> myList = new List<string>
+                {
+                    Localizer.Format("#KVASS_plan_message_No"),
+                    Localizer.Format("#KVASS_plan_message_Short"),
+                    Localizer.Format("#KVASS_plan_message_Expanded")
+                };
+
+                return myList;
+            }
+            
+            else
+            {
+                return null;
+            }
         }
     }
 }

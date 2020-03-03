@@ -8,6 +8,43 @@ namespace KVASSNS
 {
     public static class Utils
     {
+        /// <summary>
+        /// Get a precision format for comparing string with the least digits.
+        /// Example: value: 12.04, addends: 3.01, 9.02
+        /// returns "F2";
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="addends"></param>
+        /// <returns></returns>
+        public static string GetComparingFormat(double value, params double[] addends)
+        {
+            if (addends.Length == 0) return "";
+            const double Eps = 1e-10;
+
+            double sum = addends.Sum();
+            double diff = sum - value;
+            double diff_abs = Math.Abs(diff);
+
+            if (diff_abs < Eps) return "";
+
+            int i = 0;
+            const int maxFracDigits = 8;
+
+            for (double diff_rounded_abs = 0; i < maxFracDigits; i++)
+            {
+                double sum_rounded = addends.Select(z => Math.Round(z, i)).Sum();
+                double value_rounded = Math.Round(value, i);
+                double diff_rounded = sum_rounded - value_rounded;
+                diff_rounded_abs = Math.Abs(diff_rounded);
+
+                if (diff_rounded_abs > Eps
+                        && Math.Sign(diff_rounded) == Math.Sign(diff))
+                    return "F" + i;
+            }
+
+            return "";
+        }
+
         public static object GetMemberInfoValue(System.Reflection.MemberInfo member, object sourceObject)
         {
             if (member == null) throw new ArgumentNullException(nameof(member));

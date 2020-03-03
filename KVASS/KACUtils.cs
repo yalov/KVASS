@@ -96,6 +96,11 @@ namespace KVASSNS
             return alarms;
         }
 
+        static public List<KACAlarm> GetSortedPlanningActiveAlarms()
+        {
+            return GetPlanningActiveAlarms().OrderBy(z => z.AlarmTime).ToList();
+        }
+
 
     }
 }

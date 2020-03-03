@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
 
@@ -27,5 +28,26 @@ namespace KVASSNS
 
             Debug.Log(log);
         }
+
+        public static void Log(IEnumerable<object> args)
+        {
+            String log = PREFIX +
+                (time ? DateTime.Now.ToString("HH:mm:ss.f ") : "");
+
+            if (args == null)
+            {
+                Debug.Log(log + "IEnumerable is null");
+                return;
+            }
+
+            //foreach (var a in args) log += ", " + a;
+
+            log += string.Join(", ", args);
+
+            Debug.Log(log);
+        }
+
+
+        
     }
 }

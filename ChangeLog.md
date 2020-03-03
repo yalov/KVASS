@@ -1,5 +1,14 @@
 ChangeLog:
 
+## Version 0.13.0
+ * added option for appending to the queue of planning, instead of prepending
+ * fixed queueing bug when created non planning alarm
+ * updated localization 
+ * splitted settings on 3 columns
+ * ksp 1.9.1
+ * option to show calculation when creating new planning alarm.
+ 
+
 ## Version 0.12.0
  * Recompile for ksp 1.8
  * .NET 4.7.2

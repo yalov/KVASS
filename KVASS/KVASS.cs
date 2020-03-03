@@ -3,6 +3,7 @@ using KSP.UI;
 using KSP.UI.Screens;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +12,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using static KVASSNS.Logging;
 
+using KSP.UI.TooltipTypes;
 
 namespace KVASSNS
 {
@@ -20,6 +22,7 @@ namespace KVASSNS
     {
         static KVASSSimSettings settingsSim;
         static KVASSPlanSettings settingsPlan;
+        static KVASSPlanSettings2 settingsPlan2;
         static GameParameters.DifficultyParams settingsGame;
         static Regex SimulationRegEx;
 
@@ -38,6 +41,7 @@ namespace KVASSNS
 
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASSSimSettings>();
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
+            settingsPlan2 = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings2>();
             settingsGame = HighLogic.CurrentGame.Parameters.Difficulty;
 
             SimulationRegEx = new Regex(LoadRegExpPattern(), RegexOptions.IgnoreCase);
@@ -59,10 +63,111 @@ namespace KVASSNS
             //Log("OnGUILaunchScreenVesselSelected: dt.shipName: " + dt.shipName); // ok
         }
 
+
+        /*
+
+        static Button newButton1;
+        static Button newButton2;
+        static SpriteState lightsON;
+        static SpriteState lightsOFF;
+        static Sprite spriteON;
+        static Sprite spriteOFF;
+        public void CreateButton()
+        {
+            // Button.
+            // https://github.com/Sigma88/Sigma-EditorView
+
+            // EditorDriver.editorFacility
+
+            
+            //GameObject building;
+
+            //if (EditorDriver.editorFacility == EditorFacility.SPH)
+            //    building = GameObject.Find("SPHlvl1") ?? GameObject.Find("SPHlvl2") ?? GameObject.Find("SPHmodern");
+            //else
+            //    building = GameObject.Find("VABlvl2") ?? GameObject.Find("VABlvl3") ?? GameObject.Find("VABmodern");
+
+            //Switch lightSwitch = building.AddOrGetComponent<Switch>();
+            
+
+            GameObject topBar = GameObject.Find("Top Bar");
+            GameObject buttonCrew = topBar.GetChild("ButtonPanelCrew");
+            GameObject buttonEditor = topBar.GetChild("ButtonPanelEditor");
+
+            Button oldButton = buttonCrew.GetComponent<Button>();
+
+            GameObject buttonLight1 = Object.Instantiate(buttonCrew);
+            buttonLight1.transform.SetParent(topBar.transform);
+            buttonLight1.transform.position = buttonEditor.transform.position * 2 - buttonCrew.transform.position;
+            buttonLight1.transform.localScale = buttonCrew.transform.localScale;
+            buttonLight1.transform.rotation = buttonCrew.transform.rotation;
+
+            GameObject buttonLight2 = Object.Instantiate(buttonCrew);
+            buttonLight2.transform.SetParent(topBar.transform);
+            buttonLight2.transform.position = buttonEditor.transform.position * 2 - buttonCrew.transform.position;
+            buttonLight2.transform.localScale = buttonCrew.transform.localScale;
+            buttonLight2.transform.rotation = buttonCrew.transform.rotation;
+
+            Texture2D textureOFF = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "Sigma/EditorView/Textures/LightsOFF");
+            Texture2D textureON = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "Sigma/EditorView/Textures/LightsON");
+
+            Object.DestroyImmediate(buttonLight1.GetComponent<Button>());
+            newButton1 = buttonLight1.AddOrGetComponent<Button>();
+            newButton1.image = buttonLight1.GetComponent<Image>();
+
+            Object.DestroyImmediate(buttonLight2.GetComponent<Button>());
+            newButton2 = buttonLight2.AddOrGetComponent<Button>();
+            newButton2.image = buttonLight2.GetComponent<Image>();
+
+            buttonLight1.GetComponent<TooltipController_Text>().textString = buttonLight2.GetComponent<TooltipController_Text>().textString = "Toggle Lights";
+
+            newButton1.transition = Selectable.Transition.SpriteSwap;
+            newButton1.spriteState = lightsON = new SpriteState
+            {
+                highlightedSprite = Sprite.Create(textureON, new Rect(128, 128, 128, 128), Vector2.zero),
+                pressedSprite = Sprite.Create(textureON, new Rect(0, 0, 128, 128), Vector2.zero),
+                disabledSprite = Sprite.Create(textureON, new Rect(128, 0, 128, 128), Vector2.zero)
+            };
+            newButton1.image.sprite = spriteON = Sprite.Create(textureON, new Rect(0, 128, 128, 128), Vector2.zero);
+
+            newButton2.transition = Selectable.Transition.SpriteSwap;
+            newButton2.spriteState = lightsOFF = new SpriteState
+            {
+                highlightedSprite = Sprite.Create(textureOFF, new Rect(128, 128, 128, 128), Vector2.zero),
+                pressedSprite = Sprite.Create(textureOFF, new Rect(0, 0, 128, 128), Vector2.zero),
+                disabledSprite = Sprite.Create(textureOFF, new Rect(128, 0, 128, 128), Vector2.zero)
+            };
+            newButton2.image.sprite = spriteOFF = Sprite.Create(textureOFF, new Rect(0, 128, 128, 128), Vector2.zero);
+
+            newButton1.onClick.AddListener(OnButtonClick);
+            //newButton1.onClick.AddListener(lightSwitch.Flip);
+            newButton2.onClick.AddListener(OnButtonClick);
+            //newButton2.onClick.AddListener(lightSwitch.Flip);
+
+            newButton1.gameObject.SetActive(true);
+            newButton2.gameObject.SetActive(false);
+        }
+
+        static void OnButtonClick()
+        {
+
+            bool state = !newButton1.isActiveAndEnabled;
+
+            newButton1.gameObject.SetActive(state);
+            newButton2.gameObject.SetActive(!state);
+
+            Messages.QuickPost("ButtonPress");
+            Log("ButtonPress");
+        }
+
+*/
         public void Start()
         {
             //Log("Start");
             KACWrapper.InitKACWrapper();
+
+
+
 
             if (HighLogic.LoadedScene == GameScenes.EDITOR)
             {
@@ -70,6 +175,11 @@ namespace KVASSNS
                 // GameEvents.onEditorStarted.Add(ResetEditorLaunchButtons)
                 // but better safe than sorry
                 StartCoroutine(ResetBothLaunchButtons_WaitedCoroutine(null));
+
+                      
+                //CreateButton();
+               
+
             }
 
             // remove alarm
@@ -233,6 +343,7 @@ namespace KVASSNS
                 isVAB = (vsi.Value.callingFacility.facilityType == EditorFacility.VAB);
             }
 
+
             if (settingsSim.Enable
                 && !(settingsSim.IgnoreSPH && !isVAB)
                 && SimulationRegEx.IsMatch(VesselName))
@@ -254,6 +365,7 @@ namespace KVASSNS
 
                 if (alarm == null)
                 {
+                    // Alarm Is Not Found, Creating.
                     float cost, mass;
                     if (HighLogic.LoadedScene == GameScenes.EDITOR)
                     {
@@ -266,7 +378,6 @@ namespace KVASSNS
                         mass = data.totalMass;
                     }
 
-                    // Alarm Is Not Found, Creating
                     CreateNewAlarm(alarmTitle, cost, mass);
                 }
                 else if (alarm.Finished())
@@ -282,13 +393,12 @@ namespace KVASSNS
             }
             else
             {
-                Log("Safe launch");
                 Launch(launchSite, craftSubfolder);
             }
 
         }
         
-        string LoadRegExpPattern()
+        static string LoadRegExpPattern()
         {
             string[] RegExs = { "^.?test" };
 
@@ -309,7 +419,7 @@ namespace KVASSNS
         /// <summary>
         /// return Boolean success
         /// </summary>
-        bool SimulationPurchase()
+        static bool SimulationPurchase()
         {
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
             {
@@ -396,7 +506,7 @@ namespace KVASSNS
         /// <param name="value"></param>
         /// <param name="addends"></param>
         /// <returns></returns>
-        string GetComparingFormat(double value, params double[] addends)
+        static string GetComparingFormat(double value, params double[] addends)
         {
             if (addends.Length == 0) return "";
             const double Eps = 1e-10;
@@ -425,7 +535,7 @@ namespace KVASSNS
             return "";
         }
 
-        string CreateNewAlarm(string title, float cost, float mass)
+        static string CreateNewAlarm(string title, float cost, float mass)
         {
 
             double time = CalcAlarmTime(cost, mass);
@@ -450,7 +560,7 @@ namespace KVASSNS
                     alarm.Notes = Localizer.Format("#KVASS_alarm_note");
                     alarm.AlarmMargin = 0;
 
-                    if (settingsPlan.KillTimeWarp)
+                    if (settingsPlan2.KillTimeWarp)
                         alarm.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.KillWarpOnly;
                     else
                         alarm.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.DoNothing;
@@ -460,7 +570,7 @@ namespace KVASSNS
             return aID;
         }
 
-        double CalcAlarmTime(float cost, float mass)
+        static double CalcAlarmTime(float cost, float mass)
         {
             //float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
             //float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
@@ -474,14 +584,16 @@ namespace KVASSNS
             else
                 time = mass * settingsPlan.ScienceSeconds;
 
-            string log_str = String.Format("PlanTime: {0:F1}", time / KSPUtil.dateTimeFormatter.Day);
-
+            List<string> LogStrList = new List<string>();
+            LogStrList.Add(String.Format("Time: {0:F1}", time / KSPUtil.dateTimeFormatter.Day));
+            
             if (settingsPlan.RepSpeedUp && career)
             {
                 int currRep = Math.Max((int)Reputation.CurrentRep, 0);
                 int lines = currRep / settingsPlan.RepToNextLevel + 1;
                 time /= lines;
-                log_str += " / " + lines;
+                LogStrList[0] += " / " + lines;
+                LogStrList.Add(String.Format("Reputation: {1} / {2} + 1 = {0}", lines, currRep, settingsPlan.RepToNextLevel));
             }
 
             if (settingsPlan.KerbSpeedUp)
@@ -490,7 +602,8 @@ namespace KVASSNS
 
                 int teams = availableKerbs / settingsPlan.KerbToNextLevel + 1;
                 time /= teams;
-                log_str += " / " + teams;
+                LogStrList[0] += " / " + teams;
+                LogStrList.Add(String.Format("Kerbals: {1} / {2} + 1 = {0}", teams, availableKerbs, settingsPlan.KerbToNextLevel));
             }
 
 
@@ -500,7 +613,8 @@ namespace KVASSNS
 
                 int scilevel = currScience / settingsPlan.SciToNextLevel + 1;
                 time /= scilevel;
-                log_str += " / " + scilevel;
+                LogStrList[0] += " / " + scilevel;
+                LogStrList.Add(String.Format("Science: {1} / {2} + 1 = {0}", scilevel, currScience, settingsPlan.SciToNextLevel));
             }
 
             // The last one. The SpeedUps do not affect. 
@@ -508,15 +622,22 @@ namespace KVASSNS
             {
                 double bureaucracy_increment = settingsPlan.BureaucracyTime * KSPUtil.dateTimeFormatter.Day;
                 time += bureaucracy_increment;
-                log_str += " + " + settingsPlan.BureaucracyTime;
+                LogStrList[0] += " + " + settingsPlan.BureaucracyTime;
+                LogStrList.Add(String.Format("Bureaucracy: {0}", settingsPlan.BureaucracyTime));
             }
 
-            log_str += String.Format(" = {0:F1} days", time / KSPUtil.dateTimeFormatter.Day);
-            
-            if (settingsPlan.ShowMessageSpeedUps)
-                Messages.Add(log_str, 1);
+            LogStrList[0] += String.Format(" = {0:F1} days", time / KSPUtil.dateTimeFormatter.Day);
 
-            Log(log_str);
+            if (settingsPlan2.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Short"))
+                Messages.Add(LogStrList[0], 1);
+            else if (settingsPlan2.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Expanded"))
+            {
+                LogStrList.Add(LogStrList[0]);
+                LogStrList.RemoveAt(0);
+                Messages.Add(string.Join("\n", LogStrList), 1);
+            }
+
+            Log(LogStrList);
 
             return time;
         }

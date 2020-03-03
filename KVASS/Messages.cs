@@ -8,10 +8,12 @@ namespace KVASSNS
 {
     static class Messages
     {
-        public const String Orange = "#ffa500ff"; // Orange
-        public const String OrangeAlpha    = "#ffa500af"; // OrangeAlpha
+        public const String Orange = "#ffa500ff";
+        public const String OrangeAlpha = "#ffa500af";
 
-       
+
+        public enum DurationType { CONST, CLEVERCONSTPERLINE, INCREMENT};
+
         /// <summary>
         /// Add fail message and optional note to the quere.
         /// </summary>
@@ -109,12 +111,24 @@ namespace KVASSNS
                 messages.Add(messages.Keys.First() - 1, new Duplet(message, color));
         }
 
-        public static void ShowAndClear(float duration = 5.0f, bool duration_incremened = true, String color = null)
+        public static void ShowAndClear(float duration = 5.0f, DurationType type = DurationType.CONST, String color = null)
         {
-            int i = 1;
-            foreach (var pair in messages)
+            switch (type)
             {
-                QuickPost(pair.Value.Message, duration_incremened?i++:1 * duration, color ?? pair.Value.Color);
+                case DurationType.CONST:
+                    foreach (var pair in messages) QuickPost(pair.Value.Message, duration, color ?? pair.Value.Color);
+                    break;
+
+                case DurationType.CLEVERCONSTPERLINE:
+                    int countOfLines = 0;
+                    foreach (var pair in messages) countOfLines += pair.Value.Message.Split('\n').Length;
+                    foreach (var pair in messages) QuickPost(pair.Value.Message, countOfLines * duration, color ?? pair.Value.Color);
+                    break;
+
+                case DurationType.INCREMENT:
+                    int i = 1;
+                    foreach (var pair in messages) QuickPost(pair.Value.Message, i++ * duration, color ?? pair.Value.Color);
+                    break;
             }
             messages.Clear();
         }
@@ -127,7 +141,6 @@ namespace KVASSNS
                 return message;
 
         }
-
         private static string Red(string message) => Colorize(message, "red");
         private static string Colorize(string message, string color) => String.Format("<color={1}>{0}</color>", message, color);
 
