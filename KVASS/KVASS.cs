@@ -64,14 +64,12 @@ namespace KVASSNS
         }
 
 
-        /*
+        
 
-        static Button newButton1;
-        static Button newButton2;
-        static SpriteState lightsON;
-        static SpriteState lightsOFF;
-        static Sprite spriteON;
-        static Sprite spriteOFF;
+        static Button simButton;
+        static Button prependButton;
+        static Button appendButton;
+
         public void CreateButton()
         {
             // Button.
@@ -94,92 +92,146 @@ namespace KVASSNS
             GameObject buttonCrew = topBar.GetChild("ButtonPanelCrew");
             GameObject buttonEditor = topBar.GetChild("ButtonPanelEditor");
 
-            Button oldButton = buttonCrew.GetComponent<Button>();
+            //Button oldButton = buttonCrew.GetComponent<Button>();
 
-            GameObject buttonLight1 = Object.Instantiate(buttonCrew);
-            buttonLight1.transform.SetParent(topBar.transform);
-            buttonLight1.transform.position = buttonEditor.transform.position * 2 - buttonCrew.transform.position;
-            buttonLight1.transform.localScale = buttonCrew.transform.localScale;
-            buttonLight1.transform.rotation = buttonCrew.transform.rotation;
+            Button greenButton = EditorLogic.fetch.launchBtn;
+            Button newButton = EditorLogic.fetch.newBtn;
+            Button loadButton = EditorLogic.fetch.loadBtn;
+            Button saveButton = EditorLogic.fetch.saveBtn;
 
-            GameObject buttonLight2 = Object.Instantiate(buttonCrew);
-            buttonLight2.transform.SetParent(topBar.transform);
-            buttonLight2.transform.position = buttonEditor.transform.position * 2 - buttonCrew.transform.position;
-            buttonLight2.transform.localScale = buttonCrew.transform.localScale;
-            buttonLight2.transform.rotation = buttonCrew.transform.rotation;
 
-            Texture2D textureOFF = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "Sigma/EditorView/Textures/LightsOFF");
-            Texture2D textureON = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "Sigma/EditorView/Textures/LightsON");
+            GameObject buttonLaunch = greenButton.gameObject;
+            GameObject buttonNew = newButton.gameObject;
+            GameObject buttonLoad = loadButton.gameObject;
+            GameObject buttonSave = saveButton.gameObject;
 
-            Object.DestroyImmediate(buttonLight1.GetComponent<Button>());
-            newButton1 = buttonLight1.AddOrGetComponent<Button>();
-            newButton1.image = buttonLight1.GetComponent<Image>();
+            Vector3 diff = buttonEditor.transform.position - buttonCrew.transform.position;
 
-            Object.DestroyImmediate(buttonLight2.GetComponent<Button>());
-            newButton2 = buttonLight2.AddOrGetComponent<Button>();
-            newButton2.image = buttonLight2.GetComponent<Image>();
+            buttonNew.transform.position -= diff*3;
+            buttonLoad.transform.position -= diff*3;
+            buttonSave.transform.position -= diff*3;
 
-            buttonLight1.GetComponent<TooltipController_Text>().textString = buttonLight2.GetComponent<TooltipController_Text>().textString = "Toggle Lights";
 
-            newButton1.transition = Selectable.Transition.SpriteSwap;
-            newButton1.spriteState = lightsON = new SpriteState
+            GameObject buttonSimulation = UnityEngine.Object.Instantiate(buttonLaunch);
+            buttonSimulation.transform.SetParent(topBar.transform);
+            buttonSimulation.transform.position = buttonLaunch.transform.position - diff;  // buttonEditor.transform.position * 2 - buttonCrew.transform.position;
+
+            GameObject buttonPrependPlanning = UnityEngine.Object.Instantiate(buttonLaunch);
+            buttonPrependPlanning.transform.SetParent(topBar.transform);
+            buttonPrependPlanning.transform.position = buttonLaunch.transform.position - 3 * diff;
+
+            GameObject buttonAppendPlanning = UnityEngine.Object.Instantiate(buttonLaunch);
+            buttonAppendPlanning.transform.SetParent(topBar.transform);
+            buttonAppendPlanning.transform.position = buttonLaunch.transform.position - 2 * diff;
+
+            Texture2D textureSimulation = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "KVASS/Textures/Simulation");
+            Texture2D texturePrepend = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "KVASS/Textures/PlanningPrepend");
+            Texture2D textureAppend = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "KVASS/Textures/PlanningAppend");
+
+            UnityEngine.Object.DestroyImmediate(buttonSimulation.GetComponent<Button>());
+            simButton = buttonSimulation.AddOrGetComponent<Button>();
+            simButton.image = buttonSimulation.GetComponent<Image>();
+
+            UnityEngine.Object.DestroyImmediate(buttonPrependPlanning.GetComponent<Button>());
+            prependButton = buttonPrependPlanning.AddOrGetComponent<Button>();
+            prependButton.image = buttonPrependPlanning.GetComponent<Image>();
+
+            UnityEngine.Object.DestroyImmediate(buttonAppendPlanning.GetComponent<Button>());
+            appendButton = buttonAppendPlanning.AddOrGetComponent<Button>();
+            appendButton.image = buttonAppendPlanning.GetComponent<Image>();
+
+            buttonSimulation.GetComponent<TooltipController_Text>().textString = "Simulation";
+            buttonPrependPlanning.GetComponent<TooltipController_Text>().textString = "Planning (Prepend)";
+            buttonAppendPlanning.GetComponent<TooltipController_Text>().textString = "Planning (Append)";
+
+            simButton.transition = Selectable.Transition.SpriteSwap;
+            simButton.spriteState = new SpriteState
             {
-                highlightedSprite = Sprite.Create(textureON, new Rect(128, 128, 128, 128), Vector2.zero),
-                pressedSprite = Sprite.Create(textureON, new Rect(0, 0, 128, 128), Vector2.zero),
-                disabledSprite = Sprite.Create(textureON, new Rect(128, 0, 128, 128), Vector2.zero)
+                highlightedSprite = Sprite.Create(textureSimulation, new Rect(128, 128, 128, 128), Vector2.zero),
+                pressedSprite = Sprite.Create(textureSimulation, new Rect(0, 0, 128, 128), Vector2.zero),
+                disabledSprite = Sprite.Create(textureSimulation, new Rect(128, 0, 128, 128), Vector2.zero)
             };
-            newButton1.image.sprite = spriteON = Sprite.Create(textureON, new Rect(0, 128, 128, 128), Vector2.zero);
+            simButton.image.sprite = Sprite.Create(textureSimulation, new Rect(0, 128, 128, 128), Vector2.zero);
 
-            newButton2.transition = Selectable.Transition.SpriteSwap;
-            newButton2.spriteState = lightsOFF = new SpriteState
+            prependButton.transition = Selectable.Transition.SpriteSwap;
+            prependButton.spriteState = new SpriteState
             {
-                highlightedSprite = Sprite.Create(textureOFF, new Rect(128, 128, 128, 128), Vector2.zero),
-                pressedSprite = Sprite.Create(textureOFF, new Rect(0, 0, 128, 128), Vector2.zero),
-                disabledSprite = Sprite.Create(textureOFF, new Rect(128, 0, 128, 128), Vector2.zero)
+                highlightedSprite = Sprite.Create(texturePrepend, new Rect(128, 128, 128, 128), Vector2.zero),
+                pressedSprite = Sprite.Create(texturePrepend, new Rect(0, 0, 128, 128), Vector2.zero),
+                disabledSprite = Sprite.Create(texturePrepend, new Rect(128, 0, 128, 128), Vector2.zero)
             };
-            newButton2.image.sprite = spriteOFF = Sprite.Create(textureOFF, new Rect(0, 128, 128, 128), Vector2.zero);
+            prependButton.image.sprite = Sprite.Create(texturePrepend, new Rect(0, 128, 128, 128), Vector2.zero);
 
-            newButton1.onClick.AddListener(OnButtonClick);
-            //newButton1.onClick.AddListener(lightSwitch.Flip);
-            newButton2.onClick.AddListener(OnButtonClick);
-            //newButton2.onClick.AddListener(lightSwitch.Flip);
+            appendButton.transition = Selectable.Transition.SpriteSwap;
+            appendButton.spriteState = new SpriteState
+            {
+                highlightedSprite = Sprite.Create(textureAppend, new Rect(128, 128, 128, 128), Vector2.zero),
+                pressedSprite = Sprite.Create(textureAppend, new Rect(0, 0, 128, 128), Vector2.zero),
+                disabledSprite = Sprite.Create(textureAppend, new Rect(128, 0, 128, 128), Vector2.zero)
+            };
+            appendButton.image.sprite = Sprite.Create(textureAppend, new Rect(0, 128, 128, 128), Vector2.zero);
 
-            newButton1.gameObject.SetActive(true);
-            newButton2.gameObject.SetActive(false);
+            simButton.onClick.AddListener(OnSimulationButtonClick);
+            prependButton.onClick.AddListener(OnPrependButtonClick);
+            appendButton.onClick.AddListener(OnAppendButtonClick);
+
+            simButton.gameObject.SetActive(true);
+            prependButton.gameObject.SetActive(true);
+            appendButton.gameObject.SetActive(true);
         }
 
-        static void OnButtonClick()
+        static void OnSimulationButtonClick()
         {
 
-            bool state = !newButton1.isActiveAndEnabled;
-
-            newButton1.gameObject.SetActive(state);
-            newButton2.gameObject.SetActive(!state);
-
-            Messages.QuickPost("ButtonPress");
-            Log("ButtonPress");
         }
 
-*/
+
+        static void OnPrependButtonClick()
+        {
+            // Cteate planning without checking.
+
+            bool isVAB = EditorDriver.editorFacility == EditorFacility.VAB; ;
+            string VesselName = EditorLogic.fetch.ship.shipName; ;
+
+            if (KACWrapper.APIReady)
+            {
+                string alarmTitle = KACUtils.AlarmTitle(VesselName);
+
+                float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+                float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
+                CreateNewAlarm(alarmTitle, cost, mass);
+            }
+        }
+
+
+        static void OnAppendButtonClick()
+        {
+            // Cteate planning without checking.
+
+            bool isVAB = EditorDriver.editorFacility == EditorFacility.VAB; ;
+            string VesselName = EditorLogic.fetch.ship.shipName; ;
+
+            if (KACWrapper.APIReady)
+            {
+                string alarmTitle = KACUtils.AlarmTitle(VesselName);
+
+                float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+                float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
+                CreateNewAlarm(alarmTitle, cost, mass);
+            }
+        }
         public void Start()
         {
             //Log("Start");
             KACWrapper.InitKACWrapper();
 
-
-
-
             if (HighLogic.LoadedScene == GameScenes.EDITOR)
             {
-                // already have 
-                // GameEvents.onEditorStarted.Add(ResetEditorLaunchButtons)
+                // already have GameEvents.onEditorStarted.Add(ResetEditorLaunchButtons)
                 // but better safe than sorry
                 StartCoroutine(ResetBothLaunchButtons_WaitedCoroutine(null));
-
                       
-                //CreateButton();
-               
-
+                CreateButton();
             }
 
             // remove alarm
