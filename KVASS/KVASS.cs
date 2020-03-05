@@ -1,13 +1,7 @@
 ﻿using KSP.Localization;
-using KSP.UI;
-using KSP.UI.Screens;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
 using static KVASSNS.Logging;
@@ -16,14 +10,74 @@ using KSP.UI.TooltipTypes;
 
 namespace KVASSNS
 {
-    // code from https://github.com/linuxgurugamer/KCT was used there
-    [KSPAddon(KSPAddon.Startup.FlightEditorAndKSC, false)]
+    [KSPAddon(KSPAddon.Startup.FlightAndEditor, false)]
     public class KVASS : MonoBehaviour
     {
         static KVASSSimSettings settingsSim;
         static KVASSPlanSettings settingsPlan;
         static KVASSPlanSettings2 settingsPlan2;
         //static GameParameters.DifficultyParams settingsGame;
+
+        class ButtonData
+        {
+            public GameObject Object { get; set; }
+            public string TexturePath { get; set; }
+            public Button Button { get; set; }
+            public string Text { get; set; }
+            public UnityEngine.Events.UnityAction Action { get; set; }
+
+            private bool _enabled;
+            public bool Enabled
+            {
+                get { return _enabled; }
+                set
+                {
+                    _enabled = value;
+                    Button?.gameObject?.SetActive(Enabled);
+                }
+            }
+
+            public ButtonData(string texturePath, string text, UnityEngine.Events.UnityAction action, bool enabled = true)
+            {
+                TexturePath = texturePath;
+
+                Text = text;
+                Action = action;
+                Enabled = enabled;
+            }
+
+            public void CreateTopBarButton(GameObject originalbutton, GameObject parent)
+            {
+                Object = UnityEngine.Object.Instantiate(originalbutton);
+                Object.transform.SetParent(parent.transform);
+
+                UnityEngine.Object.DestroyImmediate(Object.GetComponent<Button>());
+                Button = Object.AddOrGetComponent<Button>();
+                Button.image = Object.GetComponent<Image>();
+
+                Object.GetComponent<TooltipController_Text>().textString = Text;
+
+                Texture2D texture = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == TexturePath);
+                Button.transition = Selectable.Transition.SpriteSwap;
+                Button.spriteState = new SpriteState
+                {
+                    highlightedSprite = Sprite.Create(texture, new Rect(128, 128, 128, 128), Vector2.zero),
+                    pressedSprite = Sprite.Create(texture, new Rect(0, 0, 128, 128), Vector2.zero),
+                    disabledSprite = Sprite.Create(texture, new Rect(128, 0, 128, 128), Vector2.zero)
+                };
+                Button.image.sprite = Sprite.Create(texture, new Rect(0, 128, 128, 128), Vector2.zero);
+
+                Button.onClick.AddListener(Action);
+                Button.gameObject.SetActive(Enabled);
+            }
+        }
+
+        GameObject buttonLaunch;
+        GameObject[] StockButtons;
+        List<ButtonData> buttons;
+
+        Vector3 diff;
+        Vector3 diff_space;
 
         public void Awake()
         {
@@ -41,87 +95,74 @@ namespace KVASSNS
 
         }
 
-#if false
-        private void OnGUILaunchScreenVesselSelected(ShipTemplate dt)
+        public void Start()
         {
-            this.data = dt;
-            //Log("OnGUILaunchScreenVesselSelected: dt.filename: " + dt.filename); // Empty
-            //Log("OnGUILaunchScreenVesselSelected: dt.shipName: " + dt.shipName); // ok
-        }
-#endif
+            KACWrapper.InitKACWrapper();
 
-        class ButtonData
-        {
-            public GameObject Object { get; set; }
-            public string TexturePath { get; set; }
-            public Button Button { get; set; }
-            public string Text { get; set; }
-            public UnityEngine.Events.UnityAction Action { get; set; }
-
-            private bool _enabled;
-            public bool Enabled {
-                get { return _enabled; }
-                set {
-                    _enabled = value;
-                    Button?.gameObject?.SetActive(Enabled);
-                }
-            }
-
-            public ButtonData(string texturePath, string text, UnityEngine.Events.UnityAction action, bool enabled = true)
+            if (HighLogic.LoadedScene == GameScenes.EDITOR)
             {
+                CreateTopBarButtons();
 
-                TexturePath = texturePath;
+                GameEvents.onEditorStarted.Add(OnEditorStarted);
+            }
 
-                Text = text;
-                Action = action;
-                Enabled = enabled;
+            // remove alarm
+            else if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+            {
+                string vesselName = FlightGlobals.ActiveVessel.GetDisplayName();
+
+                if (KACWrapper.APIReady && settingsPlan.Enable && settingsPlan.AutoRemoveFinishedTimers)
+                {
+                    var alarm = KACUtils.GetAlarm(KACUtils.AlarmTitle(vesselName));
+
+                    if (alarm.Finished())
+                    {
+                        bool success = KACUtils.RemoveAlarm(alarm.ID);
+                        Log("Removing alarm, success:{0}", success);
+                    }
+                }
+                Destroy(this); return;
             }
         }
 
-        GameObject topBar;
-        GameObject buttonLaunch;
-        GameObject[] StockButtons;
-        List<ButtonData> buttons;
+        public void OnDisable()
+        {
+            Log("OnDisable");
+            G﻿ameEvents.onEditorStarted.Remove(OnEditorStarted);
+        }
 
 
-
-
-        Vector3 diff;
-        Vector3 diff_space;
 
         public void CreateTopBarButtons()
         {
-            // Button.
+            // TopBar Buttons. Based on
             // https://github.com/Sigma88/Sigma-EditorView
 
             buttons = new List<ButtonData>();
+            
+            bool isVAB = EditorDriver.editorFacility == EditorFacility.VAB;
+            string VesselName = EditorLogic.fetch.ship.shipName;
+            string launchSite = EditorLogic.fetch.launchSiteName;
 
+            bool simEnabled = settingsSim.Enable && !(settingsSim.IgnoreSPH && !isVAB);
+            buttons.Add(new ButtonData("KVASS/Textures/Simulation", "Simulation", OnSimulationButtonClick, simEnabled));
+
+
+            bool planEnabled = settingsPlan.Enable && !(settingsPlan.IgnoreSPH && !isVAB) && KACWrapper.APIReady;
+            if (settingsPlan.Queue)
             {
-                bool isVAB = EditorDriver.editorFacility == EditorFacility.VAB;
-                string VesselName = EditorLogic.fetch.ship.shipName;
-                string launchSite = EditorLogic.fetch.launchSiteName;
-                int index = 1;
+                if (settingsPlan.QueueAppend)
+                    buttons.Add(new ButtonData("KVASS/Textures/PlanningAppend", "Planning (Append)", OnAppendButtonClick, planEnabled));
 
-
-                bool simEnabled = settingsSim.Enable && !(settingsSim.IgnoreSPH && !isVAB);
-                buttons.Add(new ButtonData("KVASS/Textures/Simulation", "Simulation", OnSimulationButtonClick, simEnabled));
-
-
-                bool planEnabled = settingsPlan.Enable && !(settingsPlan.IgnoreSPH && !isVAB) && KACWrapper.APIReady;
-                if (settingsPlan.Queue)
-                {
-                    if (settingsPlan.QueueAppend)
-                        buttons.Add(new ButtonData("KVASS/Textures/PlanningAppend", "Planning (Append)", OnAppendButtonClick, planEnabled));
-
-                    if (settingsPlan.QueuePrepend)
-                        buttons.Add(new ButtonData("KVASS/Textures/PlanningPrepend", "Planning (Prepend)", OnPrependButtonClick, planEnabled));
-                }
-                else
-                    buttons.Add(new ButtonData("KVASS/Textures/Planning", "Planning", OnPlanningButtonClick, planEnabled));
-
+                if (settingsPlan.QueuePrepend)
+                    buttons.Add(new ButtonData("KVASS/Textures/PlanningPrepend", "Planning (Prepend)", OnPrependButtonClick, planEnabled));
             }
+            else
+                buttons.Add(new ButtonData("KVASS/Textures/Planning", "Planning", OnPlanningButtonClick, planEnabled));
 
-            topBar = GameObject.Find("Top Bar");
+
+
+            GameObject topBar = GameObject.Find("Top Bar");
 
             buttonLaunch = EditorLogic.fetch.launchBtn.gameObject;
             GameObject buttonNew = EditorLogic.fetch.newBtn.gameObject;
@@ -130,148 +171,14 @@ namespace KVASSNS
 
             StockButtons = new GameObject[] { buttonSave, buttonLoad, buttonNew };
 
+            foreach (var b in buttons)
+                b.CreateTopBarButton(buttonLaunch, topBar);
+
             diff = buttonSave.transform.position - buttonLoad.transform.position;
-
             diff_space = buttonLaunch.transform.position - buttonSave.transform.position - diff;
-
-            //foreach (var sb in StockButtons)
-            //    sb.transform.position -= diff * buttons.Count(x => x.Enabled);
-
-
-            for (int i = 0; i < buttons.Count; i++)
-            {
-                CreateTopBarButton(buttons[i], buttonLaunch, topBar, i);
-            }
 
             MoveAllButtons();
         }
-
-
-
-        void CreateTopBarButton(ButtonData newbuttondata, GameObject originalbutton, GameObject parent, int index)
-        {
-            newbuttondata.Object = UnityEngine.Object.Instantiate(originalbutton);
-            newbuttondata.Object.transform.SetParent(parent.transform);
-            //newbuttondata.Object.transform.position = originalbutton.transform.position - (index + 1) * diff;
-
-            UnityEngine.Object.DestroyImmediate(newbuttondata.Object.GetComponent<Button>());
-            newbuttondata.Button = newbuttondata.Object.AddOrGetComponent<Button>();
-            newbuttondata.Button.image = newbuttondata.Object.GetComponent<Image>();
-
-            newbuttondata.Object.GetComponent<TooltipController_Text>().textString = newbuttondata.Text;
-
-            Texture2D texture = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == newbuttondata.TexturePath);
-            newbuttondata.Button.transition = Selectable.Transition.SpriteSwap;
-            newbuttondata.Button.spriteState = new SpriteState
-            {
-                highlightedSprite = Sprite.Create(texture, new Rect(128, 128, 128, 128), Vector2.zero),
-                pressedSprite = Sprite.Create(texture, new Rect(0, 0, 128, 128), Vector2.zero),
-                disabledSprite = Sprite.Create(texture, new Rect(128, 0, 128, 128), Vector2.zero)
-            };
-            newbuttondata.Button.image.sprite = Sprite.Create(texture, new Rect(0, 128, 128, 128), Vector2.zero);
-
-            newbuttondata.Button.onClick.AddListener(newbuttondata.Action);
-            newbuttondata.Button.gameObject.SetActive(newbuttondata.Enabled);
-
-        }
-
-
-#if false
-        public void CreateButtonTest()
-        {
-            GameObject topBar = GameObject.Find("TopBar");
-
-            if (VesselSpawnDialog.Instance == null) return;
-            FieldInfo buttonFieldInfo = typeof(VesselSpawnDialog).GetField("buttonLaunch", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (buttonFieldInfo == null) return;
-            Button greenButton = buttonFieldInfo.GetValue(VesselSpawnDialog.Instance) as Button;
-
-            FieldInfo buttonFieldInfo2 = typeof(VesselSpawnDialog).GetField("buttonDelete", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (buttonFieldInfo2 == null) return;
-            Button deleteButton = buttonFieldInfo2.GetValue(VesselSpawnDialog.Instance) as Button;
-
-            FieldInfo buttonFieldInfo3 = typeof(VesselSpawnDialog).GetField("buttonEdit", BindingFlags.NonPublic | BindingFlags.Instance);
-            if (buttonFieldInfo3 == null) return;
-            Button editButton = buttonFieldInfo3.GetValue(VesselSpawnDialog.Instance) as Button;
-
-
-            GameObject buttonLaunch = greenButton.gameObject;
-            GameObject buttonDelete = deleteButton.gameObject;
-            GameObject buttonEdit = editButton.gameObject;
-
-            Vector3 diff = buttonLaunch.transform.position - buttonEdit.transform.position;
-
-            buttonDelete.transform.position -= diff * 3;
-            buttonEdit.transform.position -= diff * 3;
-
-            GameObject buttonSimulation = UnityEngine.Object.Instantiate(buttonLaunch);
-            buttonSimulation.transform.SetParent(topBar.transform);
-            buttonSimulation.transform.position = buttonLaunch.transform.position - diff;
-
-            GameObject buttonPrependPlanning = UnityEngine.Object.Instantiate(buttonLaunch);
-            buttonPrependPlanning.transform.SetParent(topBar.transform);
-            buttonPrependPlanning.transform.position = buttonLaunch.transform.position - 3 * diff;
-
-            GameObject buttonAppendPlanning = UnityEngine.Object.Instantiate(buttonLaunch);
-            buttonAppendPlanning.transform.SetParent(topBar.transform);
-            buttonAppendPlanning.transform.position = buttonLaunch.transform.position - 2 * diff;
-
-            Texture2D textureSimulation = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "KVASS/Textures/Simulation");
-            Texture2D texturePrepend = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "KVASS/Textures/PlanningPrepend");
-            Texture2D textureAppend = Resources.FindObjectsOfTypeAll<Texture2D>().FirstOrDefault(t => t.name == "KVASS/Textures/PlanningAppend");
-
-            UnityEngine.Object.DestroyImmediate(buttonSimulation.GetComponent<Button>());
-            simButton = buttonSimulation.AddOrGetComponent<Button>();
-            simButton.image = buttonSimulation.GetComponent<Image>();
-
-            UnityEngine.Object.DestroyImmediate(buttonPrependPlanning.GetComponent<Button>());
-            prependButton = buttonPrependPlanning.AddOrGetComponent<Button>();
-            prependButton.image = buttonPrependPlanning.GetComponent<Image>();
-
-            UnityEngine.Object.DestroyImmediate(buttonAppendPlanning.GetComponent<Button>());
-            appendButton = buttonAppendPlanning.AddOrGetComponent<Button>();
-            appendButton.image = buttonAppendPlanning.GetComponent<Image>();
-
-            buttonSimulation.GetComponent<TooltipController_Text>().textString = "Simulation";
-            buttonPrependPlanning.GetComponent<TooltipController_Text>().textString = "Planning (Prepend)";
-            buttonAppendPlanning.GetComponent<TooltipController_Text>().textString = "Planning (Append)";
-
-            simButton.transition = Selectable.Transition.SpriteSwap;
-            simButton.spriteState = new SpriteState
-            {
-                highlightedSprite = Sprite.Create(textureSimulation, new Rect(128, 128, 128, 128), Vector2.zero),
-                pressedSprite     = Sprite.Create(textureSimulation, new Rect(0, 0, 128, 128), Vector2.zero),
-                disabledSprite    = Sprite.Create(textureSimulation, new Rect(128, 0, 128, 128), Vector2.zero)
-            };
-            simButton.image.sprite = Sprite.Create(textureSimulation, new Rect(0, 128, 128, 128), Vector2.zero);
-
-            prependButton.transition = Selectable.Transition.SpriteSwap;
-            prependButton.spriteState = new SpriteState
-            {
-                highlightedSprite = Sprite.Create(texturePrepend, new Rect(128, 128, 128, 128), Vector2.zero),
-                pressedSprite     = Sprite.Create(texturePrepend, new Rect(0, 0, 128, 128), Vector2.zero),
-                disabledSprite    = Sprite.Create(texturePrepend, new Rect(128, 0, 128, 128), Vector2.zero)
-            };
-            prependButton.image.sprite = Sprite.Create(texturePrepend, new Rect(0, 128, 128, 128), Vector2.zero);
-
-            appendButton.transition = Selectable.Transition.SpriteSwap;
-            appendButton.spriteState = new SpriteState
-            {
-                highlightedSprite = Sprite.Create(textureAppend, new Rect(128, 128, 128, 128), Vector2.zero),
-                pressedSprite     = Sprite.Create(textureAppend, new Rect(0, 0, 128, 128), Vector2.zero),
-                disabledSprite    = Sprite.Create(textureAppend, new Rect(128, 0, 128, 128), Vector2.zero)
-            };
-            appendButton.image.sprite = Sprite.Create(textureAppend, new Rect(0, 128, 128, 128), Vector2.zero);
-
-            simButton.onClick.AddListener(OnSimulationButtonClick);
-            prependButton.onClick.AddListener(OnPrependButtonClick);
-            appendButton.onClick.AddListener(OnAppendButtonClick);
-
-            simButton.gameObject.SetActive(true);
-            prependButton.gameObject.SetActive(true);
-            appendButton.gameObject.SetActive(true);
-        }
-#endif
 
         void OnSimulationButtonClick()
         {
@@ -327,47 +234,7 @@ namespace KVASSNS
 
 
 
-        public void Start()
-        {
-            Log("Start");
-            KACWrapper.InitKACWrapper();
-
-            if (HighLogic.LoadedScene == GameScenes.EDITOR)
-            {
-                CreateTopBarButtons();
-
-
-                GameEvents.onEditorRestart.Add(OnEditorRestart);
-                GameEvents.onEditorStarted.Add(OnEditorStarted);
-            }
-
-            // remove alarm
-            else if (HighLogic.LoadedScene == GameScenes.FLIGHT)
-            {
-                string name = FlightGlobals.ActiveVessel.GetDisplayName();
-
-                if (KACWrapper.APIReady && settingsPlan.Enable
-                //    && !SimulationRegEx.IsMatch(name)
-                )
-                {
-                    var alarm = KACUtils.GetAlarm(KACUtils.AlarmTitle(name));
-
-                    if (alarm.Finished())
-                    {
-                        bool success = KACUtils.RemoveAlarm(alarm.ID);
-                        Log("Removing alarm, success:{0}", success);
-                    }
-                }
-                Destroy(this); return;
-            }
-        }
-
-        public void OnDisable()
-        {
-            Log("OnDisable");
-            G﻿ameEvents.onEditorStarted.Remove(OnEditorStarted);
-            GameEvents.onEditorRestart.Remove(OnEditorRestart);
-        }
+      
 
         private void OnEditorStarted()
         {
@@ -436,12 +303,6 @@ namespace KVASSNS
             }
 
         }
-
-        private void OnEditorRestart()
-        {
-        }
-
-
 
         void Launch(String launchSite, string craftSubfolder = "")
         {

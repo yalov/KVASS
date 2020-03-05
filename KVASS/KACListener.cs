@@ -66,7 +66,7 @@ namespace KVASSNS
 
                     if (alarmsMoved == 1)
                     {
-                        string ShipName = KACUtils.ShipName(alarms[del_index + 1].Name);
+                        string ShipName = KACUtils.VesselName(alarms[del_index + 1].Name);
                         Messages.Add(Localizer.Format("#KVASS_alarm_deleted_another", ShipName), 1);
                     }
                     else if (alarmsMoved > 1)
@@ -124,7 +124,7 @@ namespace KVASSNS
 
             if (alarmsMoved == 1)
             {
-                string shipname = KACUtils.ShipName(firstName);
+                string shipname = KACUtils.VesselName(firstName);
                 Messages.Add(Localizer.Format("#KVASS_alarm_created_another", shipname), 2);
             }
             else if (alarmsMoved > 1)

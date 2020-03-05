@@ -10,15 +10,15 @@ namespace KVASSNS
     public static class KACUtils
     {
 
-        public static string AlarmTitle(string shipName)
+        public static string AlarmTitle(string vesselName)
         {
-            return Localizer.Format("#KVASS_alarm_title_prefix") + " " + Localizer.Format(shipName);
+            return Localizer.Format("#KVASS_alarm_title_prefix") + " " + Localizer.Format(vesselName);
         }
-        public static string ShipName(string AlarmTitle)
+        public static string VesselName(string alarmTitle)
         {
-            if (String.IsNullOrEmpty(AlarmTitle)) return "";
+            if (String.IsNullOrEmpty(alarmTitle)) return "";
 
-            return AlarmTitle.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
+            return alarmTitle.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
         }
 
         /// <summary>
@@ -100,7 +100,5 @@ namespace KVASSNS
         {
             return GetPlanningActiveAlarms().OrderBy(z => z.AlarmTime).ToList();
         }
-
-
     }
 }

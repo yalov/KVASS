@@ -121,6 +121,9 @@ namespace KVASSNS
         [GameParameters.CustomParameterUI("#KVASS_plan_kill_timewarp", toolTip = "#KVASS_plan_kill_timewarp_tooltip")]
         public bool KillTimeWarp { get; private set; } = false;
 
+        [GameParameters.CustomParameterUI("#KVASS_plan_autoremove", toolTip = "#KVASS_plan_autoremove_tooltip")]
+        public bool AutoRemoveFinishedTimers { get; private set; } = true;
+
         [GameParameters.CustomParameterUI("#KVASS_plan_message_speedUps", toolTip = "#KVASS_plan_message_speedUps_tooltip")]
         public string ShowMessageSpeedUps { get; private set; } = Localizer.Format("#KVASS_plan_message_No");
 

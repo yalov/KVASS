@@ -17,6 +17,7 @@ ChangeLog:
  
  * enabled queue by default on all difficulty preset
  * disabled speedup by Rep by default. It is very easy to get >700 at early career with default Rep settings without leaving homeworld SOI, so it doesn't make much sence. You could enable it, but then limit Rep based on your contracts mods.
+ * option for autoremove finished planning timers on launch. 
 
 ## Version 0.13.0
  * added option for appending to the queue of planning, instead of prepending
