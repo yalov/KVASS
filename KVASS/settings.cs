@@ -51,10 +51,6 @@ namespace KVASSNS
             minValue = 0.1f, maxValue = 20.0f, displayFormat = "N1")]
         public float ScienceConst { get; private set; } = 0.5f;
 
-
-        [GameParameters.CustomStringParameterUI("#KVASS_sim_re", lines = 7, title = "#KVASS_sim_re")]
-        public string REString { get; private set; } = "";
-
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {
             
@@ -113,6 +109,72 @@ namespace KVASSNS
         [GameParameters.CustomIntParameterUI("#KVASS_plan_ignore_SPH")]
         public bool IgnoreSPH { get; private set; } = false;
 
+        [GameParameters.CustomParameterUI("#KVASS_plan_queue", toolTip = "#KVASS_plan_queue_tooltip")]
+        public bool Queue { get; private set; } = true;
+
+        [GameParameters.CustomParameterUI("#KVASS_plan_queue_append", toolTip = "#KVASS_plan_queue_append_tooltip")]
+        public bool QueueAppend { get; private set; } = true;
+
+        [GameParameters.CustomParameterUI("#KVASS_plan_queue_prepend", toolTip = "#KVASS_plan_queue_prepend_tooltip")]
+        public bool QueuePrepend { get; private set; } = true;
+
+        [GameParameters.CustomParameterUI("#KVASS_plan_kill_timewarp", toolTip = "#KVASS_plan_kill_timewarp_tooltip")]
+        public bool KillTimeWarp { get; private set; } = false;
+
+        [GameParameters.CustomParameterUI("#KVASS_plan_message_speedUps", toolTip = "#KVASS_plan_message_speedUps_tooltip")]
+        public string ShowMessageSpeedUps { get; private set; } = Localizer.Format("#KVASS_plan_message_No");
+
+        public override bool Interactible(MemberInfo member, GameParameters parameters)
+        {
+            KVASSPlanSettings2.interactible = Enable;
+
+            if (member == null) return false;
+
+            if (member.Name == "Enable")
+                return true;
+            if (member.Name == "QueueAppend" || member.Name == "QueuePrepend")
+                return Queue && Enable;
+            else
+                return Enable;
+        }
+
+        public override IList ValidValues(MemberInfo member)
+        {
+            if (member == null) return null;
+
+            if (member.Name == "ShowMessageSpeedUps")
+            {
+                List<string> myList = new List<string>
+                {
+                    Localizer.Format("#KVASS_plan_message_No"),
+                    Localizer.Format("#KVASS_plan_message_Shorter"),
+                    Localizer.Format("#KVASS_plan_message_Short"),
+                    Localizer.Format("#KVASS_plan_message_Expanded")
+                };
+
+                return myList;
+            }
+
+            else
+            {
+                return null;
+            }
+        }
+    }
+
+
+
+    public class KVASSPlanSettings2 : GameParameters.CustomParameterNode
+    {
+        public override string Title { get { return Localizer.Format("#KVASS_plan_title"); } }
+        public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.CAREER | GameParameters.GameMode.SCIENCE; } }
+        public override string Section { get { return "KVASS"; } }
+        public override string DisplaySection { get { return "KVASS"; } }
+        public override int SectionOrder { get { return 3; } }
+        public override bool HasPresets { get { return false; } }
+
+        internal static bool interactible = true;
+
         [GameParameters.CustomIntParameterUI("#KVASS_plan_career_seconds", gameMode = GameParameters.GameMode.CAREER,
             minValue = 0, maxValue = 180, stepSize = 1)]
         public int CareerSeconds { get; private set; } = 10;
@@ -123,7 +185,7 @@ namespace KVASSNS
 
         [GameParameters.CustomParameterUI("#KVASS_plan_enable_rep", toolTip = "#KVASS_plan_enable_rep_tooltip",
             gameMode = GameParameters.GameMode.CAREER)]
-        public bool RepSpeedUp { get; private set; } = true;
+        public bool RepSpeedUp { get; private set; } = false;
 
         [GameParameters.CustomIntParameterUI("#KVASS_plan_rep", toolTip = "#KVASS_plan_rep_tooltip",
             gameMode = GameParameters.GameMode.CAREER, minValue = 10, maxValue = 300, stepSize = 5)]
@@ -171,31 +233,21 @@ namespace KVASSNS
 
         public override bool Interactible(MemberInfo member, GameParameters parameters)
         {
-
-            KVASSPlanSettings2.interactible = Enable;
-
             if (member == null) return false;
 
-            if (member.Name == "IgnoreSPH"
-                || member.Name == "CareerSeconds" || member.Name == "ScienceSeconds"
-                || member.Name == "RepSpeedUp" || member.Name == "KerbSpeedUp" || member.Name == "SciSpeedUp"
-                || member.Name == "Bureaucracy"
-                )
-                return Enable;
-
             if (member.Name == "RepToNextLevel")
-                return RepSpeedUp && Enable;
+                return RepSpeedUp && interactible;
 
             if (member.Name == "KerbToNextLevel")
-                return KerbSpeedUp && Enable;
+                return KerbSpeedUp && interactible;
 
             if (member.Name == "SciToNextLevel")
-                return SciSpeedUp && Enable;
+                return SciSpeedUp && interactible;
 
             if (member.Name == "BureaucracyTime")
-                return Bureaucracy && Enable;
+                return Bureaucracy && interactible;
 
-            return true;
+            return interactible;
         }
 
         public override IList ValidValues(MemberInfo member)
@@ -204,71 +256,5 @@ namespace KVASSNS
         }
     }
 
-    public class KVASSPlanSettings2 : GameParameters.CustomParameterNode
-    {
-        public override string Title { get { return Localizer.Format("#KVASS_plan_title"); } }
-        public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.CAREER | GameParameters.GameMode.SCIENCE; } }
-        public override string Section { get { return "KVASS"; } }
-        public override string DisplaySection { get { return "KVASS"; } }
-        public override int SectionOrder { get { return 3; } }
-        public override bool HasPresets { get { return false; } }
-
-        internal static bool interactible = true;
-
-
-
-        [GameParameters.CustomParameterUI("#KVASS_plan_kill_timewarp", toolTip = "#KVASS_plan_kill_timewarp_tooltip")]
-        public bool KillTimeWarp { get; private set; } = false;
-
-        [GameParameters.CustomParameterUI("#KVASS_plan_queue", toolTip = "#KVASS_plan_queue_tooltip")]
-        public bool Queue { get; private set; } = true;
-
-        [GameParameters.CustomParameterUI("#KVASS_plan_queue_append", toolTip = "#KVASS_plan_queue_append_tooltip")]
-        public bool QueueAppend { get; private set; } = true;
-
-        [GameParameters.CustomParameterUI("#KVASS_plan_message_speedUps", toolTip = "#KVASS_plan_message_speedUps_tooltip")]
-        public string ShowMessageSpeedUps { get; private set; } = Localizer.Format("#KVASS_plan_message_No");
-
-        public override void SetDifficultyPreset(GameParameters.Preset preset)
-        {
-
-            switch (preset)
-            {
-                case GameParameters.Preset.Easy:
-                    Queue = false; break;
-            }
-        }
-
-        public override bool Interactible(MemberInfo member, GameParameters parameters)
-        {
-            if (member == null) return false;
-
-            if (member.Name == "QueueAppend")
-                return Queue && interactible;
-            else
-                return interactible;
-        }
-
-        public override IList ValidValues(MemberInfo member)
-        {
-            if (member == null) return null;
-
-            if (member.Name == "ShowMessageSpeedUps")
-            {
-                List<string> myList = new List<string>
-                {
-                    Localizer.Format("#KVASS_plan_message_No"),
-                    Localizer.Format("#KVASS_plan_message_Short"),
-                    Localizer.Format("#KVASS_plan_message_Expanded")
-                };
-
-                return myList;
-            }
-            
-            else
-            {
-                return null;
-            }
-        }
-    }
+   
 }

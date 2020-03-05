@@ -11,17 +11,15 @@ namespace KVASSNS
     [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     public class KACListener : MonoBehaviour
     {
-        KVASSPlanSettings settingsPlan;
-        KVASSPlanSettings2 settingsPlan2;
+        static KVASSPlanSettings settingsPlan;
         public void Start()
         {
             //Log("KACListener: Start");
             KACWrapper.InitKACWrapper();
 
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
-            settingsPlan2 = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings2>();
 
-            if (settingsPlan.Enable && settingsPlan2.Queue && KACWrapper.APIReady)
+            if (settingsPlan.Enable && settingsPlan.Queue && KACWrapper.APIReady)
                 KACWrapper.KAC.onAlarmStateChanged += KAC_onAlarmStateChanged;
 
         }
@@ -32,62 +30,6 @@ namespace KVASSNS
 
             if (e.alarm.Name.StartsWith(Localizer.Format("#KVASS_alarm_title_prefix"), StringComparison.Ordinal))
             {
-                if (e.eventType == KACAlarm.AlarmStateEventsEnum.Created)
-                {
-                    var creating_alarm = e.alarm;
-
-                    if (!settingsPlan2.QueueAppend)
-                    {
-                        var alarms = KACUtils.GetPlanningActiveAlarms();
-
-                        var planning_UT_start = Utils.UT();
-                        double planning_UT_end = creating_alarm.AlarmTime;
-                        double planningTime = Math.Round(planning_UT_end - planning_UT_start);
-
-                        int alarmsMoved = 0;
-                        string firstName = "";
-                        foreach (var a in alarms)
-                        {
-                            if (a.ID != creating_alarm.ID)
-                            {
-                                a.AlarmTime += planningTime;
-                                alarmsMoved++;
-                                if (alarmsMoved == 1) firstName = a.Name;
-                            }
-                        }
-
-                        Messages.Add(Localizer.Format("#KVASS_alarm_created", creating_alarm.Name), 0);
-
-                        if (alarmsMoved == 1)
-                        {
-                            string shipname = KACUtils.ShipName(firstName);
-                            Messages.Add(Localizer.Format("#KVASS_alarm_created_another", shipname), 2);
-                        }
-                        else if (alarmsMoved > 1)
-                            Messages.Add(Localizer.Format("#KVASS_alarm_created_others", alarmsMoved), 2);
-
-                        Messages.ShowAndClear(3, Messages.DurationType.CLEVERCONSTPERLINE);
-                    }
-                    else
-                    {
-                        var alarms = KACUtils.GetSortedPlanningActiveAlarms();
-
-                        if (alarms.Count != 0)
-                        {
-                            var busy_UT_start = Utils.UT();
-                            double busy_UT_end = alarms.Last().AlarmTime;
-                            double busyTime = Math.Round(busy_UT_end - busy_UT_start);
-                            creating_alarm.AlarmTime += busyTime;
-                            Messages.Add(Localizer.Format("#KVASS_alarm_appended", creating_alarm.Name), 0);
-                        }
-                        else
-                        {
-                            Messages.Add(Localizer.Format("#KVASS_alarm_created", creating_alarm.Name), 0);
-                        }
-                        Messages.ShowAndClear(3, Messages.DurationType.CLEVERCONSTPERLINE);
-                    }
-                }
-
                 if (e.eventType == KACAlarm.AlarmStateEventsEnum.Deleted)
                 {
 
@@ -134,6 +76,83 @@ namespace KVASSNS
                 }
             }
         }
+
+
+
+
+        static public void AlarmCreatedQueueChange(KACAlarm alarm , bool? append)
+        {
+            if (settingsPlan.Queue)
+            {
+                if (append == null || alarm == null)
+                {
+                    return;
+                }
+                else if (append == true)
+                {
+                    AlarmAppendedToQueue(alarm);
+                }
+                else // (append == false)
+                {
+                    AlarmPrependedToQueue(alarm);
+                }
+            }
+        }
+
+
+        static void AlarmPrependedToQueue(KACAlarm alarm)
+        {
+            var alarms = KACUtils.GetPlanningActiveAlarms();
+
+            var planning_UT_start = Utils.UT();
+            double planning_UT_end = alarm.AlarmTime;
+            double planningTime = Math.Round(planning_UT_end - planning_UT_start);
+
+            int alarmsMoved = 0;
+            string firstName = "";
+            foreach (var a in alarms)
+            {
+                if (a.ID != alarm.ID)
+                {
+                    a.AlarmTime += planningTime;
+                    alarmsMoved++;
+                    if (alarmsMoved == 1) firstName = a.Name;
+                }
+            }
+
+            Messages.Add(Localizer.Format("#KVASS_alarm_created", alarm.Name), 0);
+
+            if (alarmsMoved == 1)
+            {
+                string shipname = KACUtils.ShipName(firstName);
+                Messages.Add(Localizer.Format("#KVASS_alarm_created_another", shipname), 2);
+            }
+            else if (alarmsMoved > 1)
+                Messages.Add(Localizer.Format("#KVASS_alarm_created_others", alarmsMoved), 2);
+
+            Messages.ShowAndClear(3, Messages.DurationType.CLEVERCONSTPERLINE);
+
+        }
+
+        static void AlarmAppendedToQueue(KACAlarm alarm)
+        {
+            var alarms = KACUtils.GetSortedPlanningActiveAlarms();
+
+            if (alarms.Count != 0)
+            {
+                var busy_UT_start = Utils.UT();
+                double busy_UT_end = alarms.Last().AlarmTime;
+                double busyTime = Math.Round(busy_UT_end - busy_UT_start);
+                alarm.AlarmTime += busyTime;
+                Messages.Add(Localizer.Format("#KVASS_alarm_appended", alarm.Name), 0);
+            }
+            else
+            {
+                Messages.Add(Localizer.Format("#KVASS_alarm_created", alarm.Name), 0);
+            }
+            Messages.ShowAndClear(3, Messages.DurationType.CLEVERCONSTPERLINE);
+        }
+
 
     }
 }
