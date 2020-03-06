@@ -232,59 +232,49 @@ namespace KVASSNS
             }
         }
 
-
-
-      
-
+        /// <summary>
+        /// GameEvent for Toggling Editor
+        /// </summary>
         private void OnEditorStarted()
         {
             // aka onEditorSwitch
 
             bool isVAB = EditorDriver.editorFacility == EditorFacility.VAB;
-            bool simtoggle = settingsSim.Enable && settingsSim.IgnoreSPH;
-            bool plantoggle = settingsPlan.Enable && settingsPlan.IgnoreSPH && KACWrapper.APIReady;
+            bool isSimToggling = settingsSim.Enable && settingsSim.IgnoreSPH;
+            bool isPlanToggling = settingsPlan.Enable && settingsPlan.IgnoreSPH && KACWrapper.APIReady;
 
 
-            if (simtoggle || plantoggle)
+            if (isSimToggling || isPlanToggling)
             {
-                if (simtoggle)
+                if (isSimToggling)
                 {
-                    // IgnoreSPH option enabled, need to add and remove Simulation button.
                     if (isVAB)
                     {
                         buttons[0].Enabled = true;
                     }
                     else
                     {
-                        // VAB -> SPH. remove Simulation button
                         buttons[0].Enabled = false;
                     }
                 }
 
-                if (plantoggle)
+                if (isPlanToggling)
                 {
-                    // IgnoreSPH option enabled, need to add and remove Plan button(s).
                     if (isVAB)
                     {
-                        // SPH -> VAB. Add Plan button(s)
                         for (int i = 1; i < buttons.Count; i++)
                             buttons[i].Enabled = true;
                     }
                     else
                     {
-                        // VAB -> SPH. remove Plan button(s)
                         for (int i = 1; i < buttons.Count; i++)
                             buttons[i].Enabled = false;
                     }
                 }
 
                 MoveAllButtons();
-
             }
-
-
         }
-
 
         void MoveAllButtons()
         {
@@ -337,7 +327,7 @@ namespace KVASSNS
                     //#autoLOC_419441 = Funds: <<1>>
                     //#autoLOC_900528 = Cost
 
-                    string format = GetComparingFormat(Funding.Instance.Funds, shipCost, simulCost);
+                    string format = Utils.GetComparingFormat(Funding.Instance.Funds, shipCost, simulCost);
 
                     Messages.AddFail(
                         Localizer.Format("#KVASS_message_not_enough_funds_to_sim"),
@@ -374,7 +364,7 @@ namespace KVASSNS
                     //#autoLOC_419420 = Science: <<1>>
                     //#autoLOC_900528 = Cost
 
-                    string format = GetComparingFormat(ResearchAndDevelopment.Instance.Science, science_points);
+                    string format = Utils.GetComparingFormat(ResearchAndDevelopment.Instance.Science, science_points);
 
                     Messages.AddFail(
                         Localizer.Format("#KVASS_message_not_enough_sci_to_sim"),
@@ -390,43 +380,6 @@ namespace KVASSNS
                     return false;
                 }
             }
-        }
-
-        /// <summary>
-        /// Get a precision format for comparing string with the least digits.
-        /// Example: value: 12.04, addends: 3.01, 9.02
-        /// returns "F2";
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="addends"></param>
-        /// <returns></returns>
-        static string GetComparingFormat(double value, params double[] addends)
-        {
-            if (addends.Length == 0) return "";
-            const double Eps = 1e-10;
-
-            double sum = addends.Sum();
-            double diff = sum - value;
-            double diff_abs = Math.Abs(diff);
-
-            if (diff_abs < Eps) return "";
-
-            int i = 0;
-            const int maxFracDigits = 8;
-
-            for (double diff_rounded_abs = 0; i < maxFracDigits; i++)
-            {
-                double sum_rounded = addends.Select(z => Math.Round(z, i)).Sum();
-                double value_rounded = Math.Round(value, i);
-                double diff_rounded = sum_rounded - value_rounded;
-                diff_rounded_abs = Math.Abs(diff_rounded);
-
-                if (diff_rounded_abs > Eps
-                        && Math.Sign(diff_rounded) == Math.Sign(diff))
-                    return "F" + i;
-            }
-
-            return "";
         }
 
         static string CreateNewAlarm(string title, float cost, float mass, bool? queueAppend = null)
@@ -524,7 +477,7 @@ namespace KVASSNS
             LogStrList.Add(LogStrList[0]);
             LogStrList.RemoveAt(0);
 
-            if (settingsPlan.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Short"))
+            if (settingsPlan.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Shorter"))
             {
                 Messages.Add(String.Format("{0:F1} days", time / KSPUtil.dateTimeFormatter.Day), 1);
             }

@@ -57,7 +57,7 @@ namespace KVASSNS
         {
             if (KACWrapper.APIReady)
             {
-                KACAlarm a = KACWrapper.KAC.Alarms.FirstOrDefault(z => z.Name == alarmTitle);
+                KACAlarm a = KACWrapper.KAC.Alarms.OrderBy(x => x.AlarmTime).FirstOrDefault(z => z.Name == alarmTitle);
 
                 if (a != null)
                 {

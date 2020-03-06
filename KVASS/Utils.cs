@@ -57,6 +57,10 @@ namespace KVASSNS
             return newVal;
         }
 
+        /// <summary>
+        /// Get Universal Time on any scene
+        /// </summary>
+        /// <returns></returns>
         static public double UT()
         {
             if (HighLogic.LoadedSceneIsEditor)

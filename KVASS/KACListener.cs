@@ -152,7 +152,5 @@ namespace KVASSNS
             }
             Messages.ShowAndClear(3, Messages.DurationType.CLEVERCONSTPERLINE);
         }
-
-
     }
 }
