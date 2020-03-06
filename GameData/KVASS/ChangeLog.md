@@ -1,5 +1,8 @@
 ChangeLog:
 
+## Version 1.0.0
+ * bump version (reimagine v2 coming soon)
+
 ## Version 0.13.0
  * added option for appending to the queue of planning, instead of prepending
  * fixed queueing bug when created non planning alarm
@@ -8,7 +11,6 @@ ChangeLog:
  * ksp 1.9.1
  * option to show calculation when creating new planning alarm.
  
-
 ## Version 0.12.0
  * Recompile for ksp 1.8
  * .NET 4.7.2
