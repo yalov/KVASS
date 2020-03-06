@@ -1,7 +1,26 @@
 ChangeLog:
 
+## Version 2.0.0 (unreleased)
+ * pre-2.0 was having some irritating features:
+     * it was harder to roleplay some more complicated concept, like reusable rockets
+     * writing "Test", and then removing autosaved "Test" copy of the vessels.
+     * Switching append/prepend to queue require exit to KSC and go to the settings.
+     * It was not possible to add several vessel with the same name to queue.
+     
+ * So I reimagine the mod, and now it's even less restrictive:
+     * restore stock Launch button action (disable any checking there)
+     * add 3 new separate buttons in the Editor: [Simulation], [Prepend] and [Append] planning to the quere (if its enabled)
+   So now launch button doesn't check anything itself and you can launch reusable rocket at ones,
+   you don't need to write "Test" since there is spetial button for the Simulation
+   Also you have separate buttons for Append/Prepend (disableable), and it is possible to add any amount of equally named vessels with a same name
+
+ 
+ * enabled queue by default on all difficulty preset
+ * disabled speedup by Rep by default. It is very easy to get >700 at early career with default Rep settings without leaving homeworld SOI, so it doesn't make much sence. You could enable it, but then limit Rep based on your contracts mods.
+ * option for autoremove finished planning timers on launch. 
+
 ## Version 1.0.0
- * bump version (reimagine v2 coming soon)
+ * bump version
 
 ## Version 0.13.0
  * added option for appending to the queue of planning, instead of prepending
