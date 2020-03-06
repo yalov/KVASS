@@ -479,7 +479,7 @@ namespace KVASSNS
 
             if (settingsPlan.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Shorter"))
             {
-                Messages.Add(String.Format("{0:F1} days", time / KSPUtil.dateTimeFormatter.Day), 1);
+                Messages.Add(String.Format("Time: {0:F1} days", time / KSPUtil.dateTimeFormatter.Day), 1);
             }
             else if (settingsPlan.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Short"))
             {
