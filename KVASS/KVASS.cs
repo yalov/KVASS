@@ -404,7 +404,7 @@ namespace KVASSNS
 
                     // a.Remaining doesn't work in the VAB/SPH
 
-                    alarm.Notes = Localizer.Format("#KVASS_alarm_note");
+                    alarm.Notes = Localizer.Format("#KVASS_time_short", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1"));
                     alarm.AlarmMargin = 0;
 
                     if (settingsPlan.KillTimeWarp)
@@ -432,7 +432,7 @@ namespace KVASSNS
                 time = mass * settingsPlan2.ScienceSeconds;
 
             List<string> LogStrList = new List<string>();
-            LogStrList.Add(String.Format("Time: {0:F1}", time / KSPUtil.dateTimeFormatter.Day));
+            LogStrList.Add(Localizer.Format("#KVASS_time_short1", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1")));
             
             if (settingsPlan2.RepSpeedUp && career)
             {
@@ -440,7 +440,7 @@ namespace KVASSNS
                 int lines = currRep / settingsPlan2.RepToNextLevel + 1;
                 time /= lines;
                 LogStrList[0] += " / " + lines;
-                LogStrList.Add(String.Format("Reputation: {1} / {2} + 1 = {0}", lines, currRep, settingsPlan2.RepToNextLevel));
+                LogStrList.Add(Localizer.Format("#KVASS_time_Reputation", lines, currRep, settingsPlan2.RepToNextLevel));
             }
 
             if (settingsPlan2.KerbSpeedUp)
@@ -450,7 +450,7 @@ namespace KVASSNS
                 int teams = availableKerbs / settingsPlan2.KerbToNextLevel + 1;
                 time /= teams;
                 LogStrList[0] += " / " + teams;
-                LogStrList.Add(String.Format("Kerbals: {1} / {2} + 1 = {0}", teams, availableKerbs, settingsPlan2.KerbToNextLevel));
+                LogStrList.Add(Localizer.Format("#KVASS_time_Kerbals", teams, availableKerbs, settingsPlan2.KerbToNextLevel));
             }
 
             if (settingsPlan2.SciSpeedUp)
@@ -460,7 +460,7 @@ namespace KVASSNS
                 int scilevel = currScience / settingsPlan2.SciToNextLevel + 1;
                 time /= scilevel;
                 LogStrList[0] += " / " + scilevel;
-                LogStrList.Add(String.Format("Science: {1} / {2} + 1 = {0}", scilevel, currScience, settingsPlan2.SciToNextLevel));
+                LogStrList.Add(Localizer.Format("#KVASS_time_Science", scilevel, currScience, settingsPlan2.SciToNextLevel));
             }
 
             // The last one. The SpeedUps do not affect. 
@@ -469,17 +469,17 @@ namespace KVASSNS
                 double bureaucracy_increment = settingsPlan2.BureaucracyTime * KSPUtil.dateTimeFormatter.Day;
                 time += bureaucracy_increment;
                 LogStrList[0] += " + " + settingsPlan2.BureaucracyTime;
-                LogStrList.Add(String.Format("Bureaucracy: {0}", settingsPlan2.BureaucracyTime));
+                LogStrList.Add(Localizer.Format("#KVASS_time_Bureaucracy", settingsPlan2.BureaucracyTime));
             }
 
-            LogStrList[0] += String.Format(" = {0:F1} days", time / KSPUtil.dateTimeFormatter.Day);
+            LogStrList[0] += Localizer.Format("#KVASS_time_short2", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1"));
 
             LogStrList.Add(LogStrList[0]);
             LogStrList.RemoveAt(0);
 
             if (settingsPlan.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Shorter"))
             {
-                Messages.Add(String.Format("Time: {0:F1} days", time / KSPUtil.dateTimeFormatter.Day), 1);
+                Messages.Add(Localizer.Format("#KVASS_time_short", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1")), 1);
             }
             else if (settingsPlan.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Short"))
             {
