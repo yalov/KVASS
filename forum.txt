@@ -1,0 +1,108 @@
+﻿KVASS v2
+
+Simulation and Planning Time are together.
+New Look! Buttons! No restrictions! It's a "Helper" now, and not a "Limiter".
+ 
+[Image]
+
+Simulation
+
+Use the Simulation button, and beside a cost of the vessel, you will need to pay additional funds for a simulation.  
+After you finish your testing, use usual "Revert to Editor" option — you will get back a vessel's cost but an additional payment will not be reverted.
+Do not forget to enable possibility to Revert in the stock settings. Default additional payment is 2% of a vessel's cost.
+ 
+
+Planning Time
+
+For the "real" launch you want "to plan" your vessel before a launch. Also you aren't suppose to revert the "real" launch after the planning, because they are "real". You have a simulation for that.
+For the planning time management Kerbal Alarm Clock is used.  
+You make your vessel in the editor, click a Clock Button, and KAC alarm is created (appended or prepended to your "planning queue") 
+Then you exit to the KSC and wait until the Planning KAC Alarm is finished.
+After that you finally Launch your vessel from the Editor or KSC Launchpad/Runway GUI with the usual Launch button. Alarm is deleted automatically.
+If for some roleplay reason you want to launch a vessel without the planning — just launch without planning. Since v2 It's "Helper" mod, and not a "Limiter".
+
+Why is it "planning" and not "building"?
+The funds will be spent not when you start "process", but when the process is finished and vessel is launching. 
+So, in-universe, when planning is started, the best minds of KSC-staff meet each other in the meeting room,
+and start planning: how to build the vessel, where get the fuel, and so on. After all planning is done, 
+the building proceeds in the usual kerbal way: exchange funds for a ready-to-go vessel from the Green Pocket Dimension
+
+By default at start of your game, 1 fund of a vessel's cost will be planned 10 seconds, and additional day after. Simple as that!
+
+So, for example: 
+
+GDLV3 Vehicle (24,557 funds) will be planned in 24557*10/3600/6 + 1 = 12.4 days
+Dynawing Shuttle (132,899 funds) will be planned in 132899*10/3600/6 + 1 = 62.5 days
+
+Also you could enable some speedUps for having some kind of planing time progression:
+
+speedUp by Reputation: Every time you pass 240·X reputation planning time is reduced, 
+so after 240 Rep time will be halved, after 480 Rep time will be thirded, etc.
+speedUp by Available Kerbals: Every 7 available kerbonauts in the Kerbonaut Complex creates new team,
+which reduces planning time the same way as Reputation.
+speedUp by Science: Every time you pass 2500·X science planning time is reduced, 
+so after 2500 Science time will be halved, after 5000 Science time will be thirded, etc.
+It is intended for a late game, after the tech tree is opened.
+
+if you enable Rep SpeedUp and having 240 Rep, the Dynawing will be planned in 31 days. 
+If you enable also Kerb SpeedUp and have 7 available kerbonauts, the Dynawing will be planned in 15 days.
+
+In the setting page, you could:
+change cost of a simulation or a planning
+disable any of them separately,
+disable them for the SPH — planes and truck are launched at once.
+disable a queue — unlimited amount of simultaneous planning
+disable autoremove the finished planning alarm at launch. 
+enable expanded message for creating new planning
+
+The mod works in the Career or Science mode. In the Science mode you pay science points, and mass of the vessel is used.
+
+
+Known Bugs
+Alarms are created with WarpKill, even if the option is disabled.
+After a scene change alarms became as it suppose to be without WarpKill.
+ 
+
+
+Advanced Alternatives: KCT + KRASH & Co.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Difference between V1 and V2 
+
+{
+v1 was having some irritating features:
+     * You was needed to cheat the mod to launch without planning, if it was needed for some reason (reusable rockets)
+     * writing "Test", and then removing autosaved "Test" copy of the vessels. clutter up the vessel list.
+     * Switching append/prepend to queue require exit to KSC and go to the settings.
+     * It was not possible to add several vessel with the same name to queue
+     
+So I reimagine the mod, and now it's even less restrictive:
+ * restore stock Launch button action (disable any checking there)
+ * add 3 new separate buttons in the Editor: [Simulation], [Prepend] and [Append] planning to the quere (if its enabled)
+   So now launch button doesn't check anything itself and you can launch reusable rocket at ones,
+   you don't need to write "Test" since there is spetial button for the Simulation
+   Also you have separate buttons for Append/Prepend (disableable), and it is possible to add any amount of equally named vessels with a same name
+}
+ 
+
+KVASS v1 description
+{}
