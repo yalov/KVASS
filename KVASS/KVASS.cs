@@ -73,7 +73,7 @@ namespace KVASSNS
         }
 
         GameObject buttonLaunch;
-        GameObject[] StockButtons;
+        List<GameObject> StockButtons;
         List<ButtonData> buttons;
 
         Vector3 diff;
@@ -84,7 +84,7 @@ namespace KVASSNS
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
             {
                 Log(HighLogic.CurrentGame.Mode + " mode is not supported.");
-                Destroy(this); return;
+                Destroy(gameObject); return;
             }
 
 
@@ -168,8 +168,22 @@ namespace KVASSNS
             GameObject buttonNew = EditorLogic.fetch.newBtn.gameObject;
             GameObject buttonLoad = EditorLogic.fetch.loadBtn.gameObject;
             GameObject buttonSave = EditorLogic.fetch.saveBtn.gameObject;
+            
 
-            StockButtons = new GameObject[] { buttonSave, buttonLoad, buttonNew };
+            StockButtons = new List<GameObject> { buttonSave, buttonLoad, buttonNew };
+
+            bool steamPresent = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name == "KSPSteamCtrlr");
+            if (steamPresent)
+                try
+                {
+                    GameObject buttonSteam = EditorLogic.fetch.steamBtn.gameObject;
+                    StockButtons.Add(buttonSteam);
+                }
+                catch (NullReferenceException e)
+                {
+                    Log("Failed to find the Steam Button");
+                }
+
 
             foreach (var b in buttons)
                 b.CreateTopBarButton(buttonLaunch, topBar);
@@ -287,9 +301,17 @@ namespace KVASSNS
                 }
             }
 
+            
+            //bool mechjebPresent = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name == "MechJeb2");
+
+            //Vector3 mj_space = new Vector3(146, 0, 0);
+
+            Log(diff_space);
+            Log(diff);
             foreach (var sb in StockButtons)
             {
                 sb.transform.position = buttonLaunch.transform.position - diff_space - ++index * diff;
+                //if (mechjebPresent) sb.transform.position -= mj_space;
             }
 
         }
@@ -408,10 +430,13 @@ namespace KVASSNS
                     alarm.AlarmMargin = 0;
 
                     if (settingsPlan.KillTimeWarp)
+                    {
                         alarm.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.KillWarpOnly;
+                    }
                     else
+                    {
                         alarm.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.DoNothing;
-
+                    }
 
                     KACListener.AlarmCreatedQueueChange(alarm, queueAppend);
 

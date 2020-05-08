@@ -26,13 +26,12 @@ namespace KVASSNS
 
         void KAC_onAlarmStateChanged(AlarmStateChangedEventArgs e)
         {
-            if (e.alarm == null || e.alarm.Finished()) return;
-
-            if (e.alarm.Name.StartsWith(Localizer.Format("#KVASS_alarm_title_prefix"), StringComparison.Ordinal))
+            if (e.eventType == KACAlarm.AlarmStateEventsEnum.Deleted)
             {
-                if (e.eventType == KACAlarm.AlarmStateEventsEnum.Deleted)
-                {
+                if (e.alarm == null || e.alarm.Finished()) return;
 
+                if (e.alarm.Name.StartsWith(Localizer.Format("#KVASS_alarm_title_prefix"), StringComparison.Ordinal))
+                {
                     // e.alarm is still in the list
                     var deleting_alarm = e.alarm;
 
@@ -43,7 +42,7 @@ namespace KVASSNS
                     double planning_UT_start;
 
                     if (del_index == 0)
-                        planning_UT_start = Utils.UT(); // HighLogic.CurrentGame.UniversalTime; //HighLogic.CurrentGame.flightState.universalTime; //Planetarium.GetUniversalTime();
+                        planning_UT_start = Utils.UT();
                     else
                         planning_UT_start = alarms[del_index - 1].AlarmTime;
 
@@ -73,11 +72,10 @@ namespace KVASSNS
                         Messages.Add(Localizer.Format("#KVASS_alarm_deleted_others", alarmsMoved), 1);
 
                     Messages.ShowAndClear(5, Messages.DurationType.CONST);
+
                 }
             }
         }
-
-
 
 
         static public void AlarmCreatedQueueChange(KACAlarm alarm , bool? append)

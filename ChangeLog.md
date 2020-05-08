@@ -1,6 +1,13 @@
 ChangeLog:
 
-## Version 2.0.0 (unreleased)
+## Version 2.0.0.3 (prerelease)
+ * support steam button
+
+## Version 2.0.0.2 (prerelease)
+ * changed wrapper for new KAC 3.13.0.0, which fixed the fake KillWarp icon bug.
+   The KAC 3.13.0.0 is for ksp 1.9, so I set the KVASS also for 1.9, though both work fine with ksp 1.8.1
+
+## Version 2.0.0.1 (prerelease)
  * pre-2.0 was having some irritating features:
      * it was harder to roleplay some more complicated concept, like reusable rockets
      * writing "Test", and then removing autosaved "Test" copy of the vessels.
