@@ -109,7 +109,7 @@ namespace KVASSNS
             // remove alarm
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT)
             {
-                string vesselName = FlightGlobals.ActiveVessel.GetDisplayName();
+                string vesselName = Utils.GetVesselName();
 
                 if (KACWrapper.APIReady && settingsPlan.Enable && settingsPlan.AutoRemoveFinishedTimers)
                 {
@@ -141,8 +141,6 @@ namespace KVASSNS
             buttons = new List<ButtonData>();
             
             bool isVAB = EditorDriver.editorFacility == EditorFacility.VAB;
-            string VesselName = EditorLogic.fetch.ship.shipName;
-            string launchSite = EditorLogic.fetch.launchSiteName;
 
             bool simEnabled = settingsSim.Enable && !(settingsSim.IgnoreSPH && !isVAB);
             buttons.Add(new ButtonData("KVASS/Textures/Simulation", "Simulation", OnSimulationButtonClick, simEnabled));
@@ -203,9 +201,14 @@ namespace KVASSNS
         }
 
 
-        static void OnPlanningButtonClick()
+        static void OnPlanningButtonClick() => AnyButtonClick(queueAppend: null);
+        static void OnPrependButtonClick() => AnyButtonClick(queueAppend: false);
+        static void OnAppendButtonClick() => AnyButtonClick(queueAppend: true);
+  
+
+        static void AnyButtonClick(bool? queueAppend)
         {
-            string VesselName = EditorLogic.fetch.ship.shipName;
+            string VesselName = Utils.GetVesselName();
 
             if (KACWrapper.APIReady)
             {
@@ -213,38 +216,10 @@ namespace KVASSNS
 
                 float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
                 float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
-                CreateNewAlarm(alarmTitle, cost, mass, queueAppend: null);
+                CreateNewAlarm(alarmTitle, cost, mass, queueAppend);
             }
         }
 
-        static void OnPrependButtonClick()
-        {
-            string VesselName = EditorLogic.fetch.ship.shipName;
-
-            if (KACWrapper.APIReady)
-            {
-                string alarmTitle = KACUtils.AlarmTitle(VesselName);
-
-                float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
-                float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
-                CreateNewAlarm(alarmTitle, cost, mass, queueAppend: false);
-            }
-        }
-
-
-        static void OnAppendButtonClick()
-        {
-            string VesselName = EditorLogic.fetch.ship.shipName; ;
-
-            if (KACWrapper.APIReady)
-            {
-                string alarmTitle = KACUtils.AlarmTitle(VesselName);
-
-                float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
-                float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
-                CreateNewAlarm(alarmTitle, cost, mass, queueAppend: true);
-            }
-        }
 
         /// <summary>
         /// GameEvent for Toggling Editor
@@ -426,7 +401,10 @@ namespace KVASSNS
 
                     // a.Remaining doesn't work in the VAB/SPH
 
-                    alarm.Notes = Localizer.Format("#KVASS_time_short", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1"));
+                    alarm.Notes = Localizer.Format("#KVASS_alarm_note",
+                        cost.ToString("F0"),
+                        (time / KSPUtil.dateTimeFormatter.Day).ToString("F1"));
+                       
                     alarm.AlarmMargin = 0;
 
                     if (settingsPlan.KillTimeWarp)

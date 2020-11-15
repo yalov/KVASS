@@ -1,5 +1,10 @@
 ChangeLog:
 
+## Version 2.0.0.4 (prerelease)
+ * fix append first timer bug 
+ * add cost to alarm note 
+ * update localization
+
 ## Version 2.0.0.3 (prerelease)
  * support steam button
 

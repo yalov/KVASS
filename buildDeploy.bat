@@ -6,7 +6,8 @@ rem v2
 rem instruction in the BUILDRELEASE.BAT
 
 rem Set variables here
-set GAMEPATH=c:\Users\User\Games\Kerbal Space Program 1.9.1
+set GAMEPATH=c:\Users\User\Games\Kerbal Space Program 1.10.1
+
 set MODNAME=KVASS
 
 REM copy dll and .version to Repository/GameData

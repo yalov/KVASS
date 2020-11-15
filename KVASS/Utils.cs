@@ -64,13 +64,17 @@ namespace KVASSNS
         static public double UT()
         {
             if (HighLogic.LoadedSceneIsEditor)
-            {
                 return HighLogic.CurrentGame.flightState.universalTime;
-            }
             else
-            {
                 return Planetarium.GetUniversalTime();
-            }
+        }
+
+        static public string GetVesselName()
+        {
+            if (HighLogic.LoadedSceneIsEditor) 
+                return EditorLogic.fetch.ship.shipName.Trim();
+            else 
+                return FlightGlobals.ActiveVessel.GetDisplayName().Trim();
         }
     }
 
