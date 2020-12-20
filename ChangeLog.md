@@ -1,25 +1,43 @@
 ChangeLog:
 
-## Version 2.0.1
- * v2 release
+### Version 2.0.1
+ * v1 was having some irritating features:
+     * it was harder to roleplay some more complicated concept, like reusable rockets
+     * writing "Test", and then removing autosaved "Test" copy of the vessels.
+     * Switching append/prepend to queue require exit to KSC and go to the settings.
+     * It was not possible to add several vessel with the same name to queue.
+     
+   So I reimagine the mod, and now it's even less restrictive:
+     * restore stock Launch button action (disable any checking there)
+     * add 3 new separate buttons in the Editor: [Simulation], [Prepend] and [Append] planning to the quere (if its enabled)
+   So now launch button doesn't check anything itself and you can launch reusable rocket at ones,
+   you don't need to write "Test" since there is spetial button for the Simulation
+   Also you have separate buttons for Append/Prepend (disableable), and it is possible to add any amount of equally named vessels with a same name
+ * enabled queue by default on all difficulty preset
+ * enabled by default SpeedUp by passing Years (5 years is default)
+ * disabled speedup by Rep by default. 
+   It is very easy to get >700 at early career with default Rep settings without leaving homeworld SOI, 
+   so it doesn't make much sence.
+ * option for autoremove finished planning timers on launch. 
 
-## Version 2.0.0.5 (prerelease)
+
+### Version 2.0.0.5 (prerelease)
  * added SpeedUp by passing Years (5 years is default)
  * rename bureaucracy to constTime
 
-## Version 2.0.0.4 (prerelease)
+### Version 2.0.0.4 (prerelease)
  * fix append first timer bug 
  * add cost to alarm note 
  * update localization
 
-## Version 2.0.0.3 (prerelease)
+### Version 2.0.0.3 (prerelease)
  * support steam button
 
-## Version 2.0.0.2 (prerelease)
+### Version 2.0.0.2 (prerelease)
  * changed wrapper for new KAC 3.13.0.0, which fixed the fake KillWarp icon bug.
    The KAC 3.13.0.0 is for ksp 1.9, so I set the KVASS also for 1.9, though both work fine with ksp 1.8.1
 
-## Version 2.0.0.1 (prerelease)
+### Version 2.0.0.1 (prerelease)
  * pre-2.0 was having some irritating features:
      * it was harder to roleplay some more complicated concept, like reusable rockets
      * writing "Test", and then removing autosaved "Test" copy of the vessels.
@@ -38,10 +56,10 @@ ChangeLog:
  * disabled speedup by Rep by default. It is very easy to get >700 at early career with default Rep settings without leaving homeworld SOI, so it doesn't make much sence. You could enable it, but then limit Rep based on your contracts mods.
  * option for autoremove finished planning timers on launch. 
 
-## Version 1.0.0
+### Version 1.0.0
  * bump version
 
-## Version 0.13.0
+### Version 0.13.0
  * added option for appending to the queue of planning, instead of prepending
  * fixed queueing bug when created non planning alarm
  * updated localization 
@@ -49,7 +67,7 @@ ChangeLog:
  * ksp 1.9.1
  * option to show calculation when creating new planning alarm.
  
-## Version 0.12.0
+### Version 0.12.0
  * Recompile for ksp 1.8
  * .NET 4.7.2
  * add SpeedUp by Science (disabled by default)
@@ -63,7 +81,7 @@ ChangeLog:
  * [known-bug] Alarms are created with WarpKill, even if the option is disabled. 
    After a scene change alarms become as it suppose to be with/without WarpKill.
  
-## Version 0.11.0
+### Version 0.11.0
  * supports MH Launch buttons
  * options to ignore SPH. Planes and trucks are built without planning or simulation.
  * option to kill time-warp on the end of a simulation.
@@ -71,23 +89,23 @@ ChangeLog:
    New planning is added to start of the queue, other timers delayed correspondingly in the KAC list. 
    Removing any planning from the queue (in the Editor) will shift following timers back
 
-## Version 0.8.3
+### Version 0.8.3
  * at least 1 decimal digit
    in the science warning message
  * lower default sci-cost in the science mode
  * clearing text and settings
 
-## Version 0.8.2
+### Version 0.8.2
  * renamed to the KVASS
  * updated settings min/max
  * significant digits in the warning message
 
-## Version 0.8.0
+### Version 0.8.0
  * clearing code
 
-## Version 0.7.6
+### Version 0.7.6
  * Beta
  * renamed to the KVAS
 
-## Version 0.6.8
+### Version 0.6.8
  * Alpha
