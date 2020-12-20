@@ -1,5 +1,8 @@
 ChangeLog:
 
+## Version 2.0.1
+ * v2 release
+
 ## Version 2.0.0.5 (prerelease)
  * added SpeedUp by passing Years (5 years is default)
  * rename bureaucracy to constTime
