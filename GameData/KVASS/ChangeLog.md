@@ -1,5 +1,9 @@
 ChangeLog:
 
+## Version 2.0.0.5 (prerelease)
+ * added SpeedUp by passing Years (5 years is default)
+ * rename bureaucracy to constTime
+
 ## Version 2.0.0.4 (prerelease)
  * fix append first timer bug 
  * add cost to alarm note 

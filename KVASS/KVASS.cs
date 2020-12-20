@@ -177,7 +177,7 @@ namespace KVASSNS
                     GameObject buttonSteam = EditorLogic.fetch.steamBtn.gameObject;
                     StockButtons.Add(buttonSteam);
                 }
-                catch (NullReferenceException e)
+                catch (NullReferenceException)
                 {
                     Log("Failed to find the Steam Button");
                 }
@@ -291,7 +291,7 @@ namespace KVASSNS
 
         }
 
-        void Launch(String launchSite, string craftSubfolder = "")
+        void Launch(String launchSite)
         {
             if (HighLogic.LoadedScene == GameScenes.EDITOR)
                 EditorLogic.fetch.launchVessel(launchSite);
@@ -307,7 +307,7 @@ namespace KVASSNS
                 double shipCost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
                 double simulCost = 0.01 * settingsSim.CareerVessel * shipCost;
 
-                if (settingsSim.CareerBureaucracy)
+                if (settingsSim.CareerIsConst)
                     simulCost += settingsSim.CareerConst;
 
                 if (simulCost == 0) return true;
@@ -346,7 +346,7 @@ namespace KVASSNS
             {
                 float science_points = settingsSim.ScienceVessel * EditorLogic.fetch.ship.GetTotalMass() / 100;
 
-                if (settingsSim.ScienceBureaucracy)
+                if (settingsSim.ScienceIsConst)
                     science_points += settingsSim.ScienceConst;
 
                 if (science_points == 0) return true;
@@ -436,7 +436,33 @@ namespace KVASSNS
 
             List<string> LogStrList = new List<string>();
             LogStrList.Add(Localizer.Format("#KVASS_time_short1", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1")));
-            
+
+
+            if (settingsPlan2.CalendarSpeedUp)
+            {
+                
+                int fullYears = (int)(Planetarium.GetUniversalTime() / KSPUtil.dateTimeFormatter.Year);
+                int fulldays = (int)((Planetarium.GetUniversalTime() - fullYears * KSPUtil.dateTimeFormatter.Year) / KSPUtil.dateTimeFormatter.Day);
+                string date = "Y" + (fullYears + 1) + "D" + (fulldays + 1);
+
+                int speedups = fullYears / settingsPlan2.CalendarYearsToNextLevel + 1;
+                speedups = Math.Min(speedups, settingsPlan2.CalendarYearsSpeedUpsMaxCount) ;
+                
+                string dateNextSpeedUp;
+                if (speedups == settingsPlan2.CalendarYearsSpeedUpsMaxCount)
+                    dateNextSpeedUp = "No";
+                else
+                    dateNextSpeedUp = "Y" + (speedups * settingsPlan2.CalendarYearsToNextLevel + 1) + "D1";
+
+
+                time /= speedups;
+                LogStrList[0] += " / " + speedups;
+                LogStrList.Add(Localizer.Format("#KVASS_time_Calendar", date, dateNextSpeedUp,speedups));
+            }
+
+            Log("GetUniversalTime: " + Planetarium.GetUniversalTime());
+            Log("Years: " + Planetarium.GetUniversalTime() / KSPUtil.dateTimeFormatter.Year);
+
             if (settingsPlan2.RepSpeedUp && career)
             {
                 int currRep = Math.Max((int)Reputation.CurrentRep, 0);
@@ -467,12 +493,12 @@ namespace KVASSNS
             }
 
             // The last one. The SpeedUps do not affect. 
-            if (settingsPlan2.Bureaucracy)
+            if (settingsPlan2.ConstTime)
             {
-                double bureaucracy_increment = settingsPlan2.BureaucracyTime * KSPUtil.dateTimeFormatter.Day;
-                time += bureaucracy_increment;
-                LogStrList[0] += " + " + settingsPlan2.BureaucracyTime;
-                LogStrList.Add(Localizer.Format("#KVASS_time_Bureaucracy", settingsPlan2.BureaucracyTime));
+                double constTime_increment = settingsPlan2.ConstTimeDays * KSPUtil.dateTimeFormatter.Day;
+                time += constTime_increment;
+                LogStrList[0] += " + " + settingsPlan2.ConstTimeDays;
+                LogStrList.Add(Localizer.Format("#KVASS_time_ConstTime", settingsPlan2.ConstTimeDays));
             }
 
             LogStrList[0] += Localizer.Format("#KVASS_time_short2", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1"));

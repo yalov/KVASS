@@ -34,13 +34,13 @@ namespace KVASSNS
         public float ScienceVessel { get; private set; } = 1.0f;
 
 
-        [GameParameters.CustomParameterUI("#KVASS_sim_career_bureaucracy", toolTip = "#KVASS_sim_career_bureaucracy_tooltip",
+        [GameParameters.CustomParameterUI("#KVASS_sim_career_addFee", toolTip = "#KVASS_sim_career_addFee_tooltip",
             gameMode = GameParameters.GameMode.CAREER)]
-        public bool CareerBureaucracy { get; private set; } = false;
+        public bool CareerIsConst { get; private set; } = false;
 
-        [GameParameters.CustomParameterUI("#KVASS_sim_science_bureaucracy", toolTip = "#KVASS_sim_science_bureaucracy_tooltip",
+        [GameParameters.CustomParameterUI("#KVASS_sim_science_addFee", toolTip = "#KVASS_sim_science_addFee_tooltip",
             gameMode = GameParameters.GameMode.SCIENCE)]
-        public bool ScienceBureaucracy { get; private set; } = false;
+        public bool ScienceIsConst { get; private set; } = false;
 
 
         [GameParameters.CustomIntParameterUI("#KVASS_sim_career_const", gameMode = GameParameters.GameMode.CAREER,
@@ -73,16 +73,15 @@ namespace KVASSNS
 
             if (member.Name == "IgnoreSPH"
                 || member.Name == "ScienceVessel" || member.Name == "CareerVessel"
-                || member.Name == "ScienceBureaucracy" || member.Name == "CareerBureaucracy"
-                || member.Name == "REString"
+                || member.Name == "ScienceIsConst" || member.Name == "CareerIsConst"
                 )
                 return Enable;
 
             if (member.Name == "CareerConst")
-                return CareerBureaucracy && Enable;
+                return CareerIsConst && Enable;
 
             if (member.Name == "ScienceConst")
-                return ScienceBureaucracy && Enable;
+                return ScienceIsConst && Enable;
 
             return true;
         }
@@ -125,7 +124,7 @@ namespace KVASSNS
         public bool AutoRemoveFinishedTimers { get; private set; } = true;
 
         [GameParameters.CustomParameterUI("#KVASS_plan_message_speedUps", toolTip = "#KVASS_plan_message_speedUps_tooltip")]
-        public string ShowMessageSpeedUps { get; private set; } = Localizer.Format("#KVASS_plan_message_No");
+        public string ShowMessageSpeedUps { get; private set; } = Localizer.Format("#KVASS_plan_message_Shorter");
 
         public override bool Interactible(MemberInfo member, GameParameters parameters)
         {
@@ -186,6 +185,20 @@ namespace KVASSNS
             minValue = 0, maxValue = 180, stepSize = 1)]
         public int ScienceSeconds { get; private set; } = 4;
 
+        [GameParameters.CustomParameterUI("#KVASS_plan_enable_calendar", toolTip = "#KVASS_plan_enable_calendar_tooltip")]
+        public bool CalendarSpeedUp { get; private set; } = true;
+
+        [GameParameters.CustomIntParameterUI("#KVASS_plan_calendar", toolTip = "#KVASS_plan_calendar_tooltip",
+            minValue = 2, maxValue = 50, stepSize = 1)]
+        public int CalendarYearsToNextLevel { get; private set; } = 5;
+
+
+        [GameParameters.CustomIntParameterUI("#KVASS_plan_calendar_max", toolTip = "#KVASS_plan_calendar_max_tooltip",
+            minValue = 1, maxValue = 50, stepSize = 1)]
+        public int CalendarYearsSpeedUpsMaxCount { get; private set; } = 5;
+
+
+
         [GameParameters.CustomParameterUI("#KVASS_plan_enable_rep", toolTip = "#KVASS_plan_enable_rep_tooltip",
             gameMode = GameParameters.GameMode.CAREER)]
         public bool RepSpeedUp { get; private set; } = false;
@@ -210,18 +223,18 @@ namespace KVASSNS
         public int SciToNextLevel { get; private set; } = 2500;
 
 
-        [GameParameters.CustomParameterUI("#KVASS_plan_enable_bureaucracy", toolTip = "#KVASS_plan_enable_bureaucracy_tooltip")]
-        public bool Bureaucracy { get; private set; } = true;
+        [GameParameters.CustomParameterUI("#KVASS_plan_enable_constTime", toolTip = "#KVASS_plan_enable_constTime_tooltip")]
+        public bool ConstTime { get; private set; } = true;
 
-        [GameParameters.CustomIntParameterUI("#KVASS_plan_bureaucracy", minValue = 1, maxValue = 142, stepSize = 1)]
-        public int BureaucracyTime { get; private set; } = 1;
+        [GameParameters.CustomIntParameterUI("#KVASS_plan_constTime", minValue = 1, maxValue = 142, stepSize = 1)]
+        public int ConstTimeDays { get; private set; } = 1;
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {
             switch (preset)
             {
                 case GameParameters.Preset.Easy:   
-                    CareerSeconds = 10; ScienceSeconds = 4; Bureaucracy = false; break;
+                    CareerSeconds = 10; ScienceSeconds = 4; ConstTime = false; break;
                 case GameParameters.Preset.Normal: 
                     CareerSeconds = 10; ScienceSeconds = 4; break;
                 case GameParameters.Preset.Hard:   
@@ -238,6 +251,14 @@ namespace KVASSNS
         {
             if (member == null) return false;
 
+            if (member.Name == "CalendarYearsToNextLevel")
+                return CalendarSpeedUp && interactible;
+
+            if (member.Name == "CalendarYearsSpeedUpsMaxCount")
+                return CalendarSpeedUp && interactible;
+
+
+
             if (member.Name == "RepToNextLevel")
                 return RepSpeedUp && interactible;
 
@@ -247,8 +268,8 @@ namespace KVASSNS
             if (member.Name == "SciToNextLevel")
                 return SciSpeedUp && interactible;
 
-            if (member.Name == "BureaucracyTime")
-                return Bureaucracy && interactible;
+            if (member.Name == "ConstTimeDays")
+                return ConstTime && interactible;
 
             return interactible;
         }

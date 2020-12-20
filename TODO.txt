@@ -1,7 +1,6 @@
+feature:
  * SpeedUp by Tech Tree
 
 bugs:
  * Warp is Killed by default until SceneChange
-
-space trim - problem when vessel name end with space
 
