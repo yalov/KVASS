@@ -1,4 +1,7 @@
-ChangeLog:
+## ChangeLog:
+
+### Version 2.0.2
+ * fix doubling time of appeding alarm
 
 ### Version 2.0.1
  * v1 was having some irritating features:
