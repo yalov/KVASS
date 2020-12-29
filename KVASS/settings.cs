@@ -257,8 +257,6 @@ namespace KVASSNS
             if (member.Name == "CalendarYearsSpeedUpsMaxCount")
                 return CalendarSpeedUp && interactible;
 
-
-
             if (member.Name == "RepToNextLevel")
                 return RepSpeedUp && interactible;
 

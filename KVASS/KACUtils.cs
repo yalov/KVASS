@@ -89,16 +89,16 @@ namespace KVASSNS
             if (!KACWrapper.APIReady) return new List<KACAlarm>();
 
             var alarms = KACWrapper.KAC.Alarms.Where(
-                    a => Remaining(a) > 0 &&
+                    a => !a.Finished() &&
                     a.Name.StartsWith(Localizer.Format("#KVASS_alarm_title_prefix"), StringComparison.Ordinal)
                     );
 
             return alarms;
         }
 
-        static public List<KACAlarm> GetSortedPlanningActiveAlarms()
+        static public IEnumerable<KACAlarm> GetSortedPlanningActiveAlarms()
         {
-            return GetPlanningActiveAlarms().OrderBy(z => z.AlarmTime).ToList();
+            return GetPlanningActiveAlarms().OrderBy(z => z.AlarmTime);
         }
     }
 }

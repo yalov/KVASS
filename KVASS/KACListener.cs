@@ -35,7 +35,7 @@ namespace KVASSNS
                     // e.alarm is still in the list
                     var deleting_alarm = e.alarm;
 
-                    var alarms = KACUtils.GetSortedPlanningActiveAlarms();
+                    var alarms = KACUtils.GetSortedPlanningActiveAlarms().ToList();
 
                     int del_index = alarms.FindIndex(z => z.ID == deleting_alarm.ID);
 
@@ -136,15 +136,16 @@ namespace KVASSNS
         {
             var alarms = KACUtils.GetSortedPlanningActiveAlarms();
 
-            // new alarm also in the alarms
-            if (alarms.Count > 1)
+            // remove alarm from alarms
+            alarms = alarms.Where(a => a.ID != alarm.ID);
+
+            if (alarms.Any())
             {
                 var busy_UT_start = Utils.UT();
                 double busy_UT_end = alarms.Last().AlarmTime;
                 double busyTime = Math.Round(busy_UT_end - busy_UT_start);
                 alarm.AlarmTime += busyTime;
                 Messages.Add(Localizer.Format("#KVASS_alarm_appended", alarm.Name), 0);
-                
             }
             else
             {

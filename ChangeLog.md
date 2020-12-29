@@ -1,5 +1,8 @@
 ChangeLog:
 
+### Version 2.0.2
+
+
 ### Version 2.0.1
  * v1 was having some irritating features:
      * it was harder to roleplay some more complicated concept, like reusable rockets
