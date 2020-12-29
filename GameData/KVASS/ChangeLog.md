@@ -1,7 +1,7 @@
 ## ChangeLog:
 
 ### Version 2.0.2
- * fix doubling time of appeding alarm
+ * fix doubling time of the appeding alarm
 
 ### Version 2.0.1
  * v1 was having some irritating features:
@@ -22,42 +22,8 @@
    It is very easy to get >700 at early career with default Rep settings without leaving homeworld SOI, 
    so it doesn't make much sence.
  * option for autoremove finished planning timers on launch. 
-
-
-### Version 2.0.0.5 (prerelease)
  * added SpeedUp by passing Years (5 years is default)
  * rename bureaucracy to constTime
-
-### Version 2.0.0.4 (prerelease)
- * fix append first timer bug 
- * add cost to alarm note 
- * update localization
-
-### Version 2.0.0.3 (prerelease)
- * support steam button
-
-### Version 2.0.0.2 (prerelease)
- * changed wrapper for new KAC 3.13.0.0, which fixed the fake KillWarp icon bug.
-   The KAC 3.13.0.0 is for ksp 1.9, so I set the KVASS also for 1.9, though both work fine with ksp 1.8.1
-
-### Version 2.0.0.1 (prerelease)
- * pre-2.0 was having some irritating features:
-     * it was harder to roleplay some more complicated concept, like reusable rockets
-     * writing "Test", and then removing autosaved "Test" copy of the vessels.
-     * Switching append/prepend to queue require exit to KSC and go to the settings.
-     * It was not possible to add several vessel with the same name to queue.
-     
- * So I reimagine the mod, and now it's even less restrictive:
-     * restore stock Launch button action (disable any checking there)
-     * add 3 new separate buttons in the Editor: [Simulation], [Prepend] and [Append] planning to the quere (if its enabled)
-   So now launch button doesn't check anything itself and you can launch reusable rocket at ones,
-   you don't need to write "Test" since there is spetial button for the Simulation
-   Also you have separate buttons for Append/Prepend (disableable), and it is possible to add any amount of equally named vessels with a same name
-
- 
- * enabled queue by default on all difficulty preset
- * disabled speedup by Rep by default. It is very easy to get >700 at early career with default Rep settings without leaving homeworld SOI, so it doesn't make much sence. You could enable it, but then limit Rep based on your contracts mods.
- * option for autoremove finished planning timers on launch. 
 
 ### Version 1.0.0
  * bump version
