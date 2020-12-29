@@ -326,17 +326,15 @@ namespace KVASSNS
 
                     string format = Utils.GetComparingFormat(Funding.Instance.Funds, shipCost, simulCost);
 
-                    Messages.AddFail(
+                    Messages.QuickPostFail(
                         Localizer.Format("#KVASS_message_not_enough_funds_to_sim"),
                         String.Format("{0} [{1}: {2}+{3}]\n",
                             Localizer.Format("#autoLOC_419441", Funding.Instance.Funds),
-                            Localizer.Format("#autoLOC_900528"), 
-                            shipCost.ToString(format), 
+                            Localizer.Format("#autoLOC_900528"),
+                            shipCost.ToString(format),
                             simulCost.ToString(format)
                         )
                     );
-
-                    Messages.ShowFailsAndClear();
 
                     return false;
                 }
@@ -363,7 +361,8 @@ namespace KVASSNS
 
                     string format = Utils.GetComparingFormat(ResearchAndDevelopment.Instance.Science, science_points);
 
-                    Messages.AddFail(
+
+                    Messages.QuickPostFail(
                         Localizer.Format("#KVASS_message_not_enough_sci_to_sim"),
                         String.Format("{0} [{1}: {2}]\n",
                             Localizer.Format("#autoLOC_419420", ResearchAndDevelopment.Instance.Science),
@@ -371,8 +370,6 @@ namespace KVASSNS
                             science_points.ToString(format)
                         )
                     );
-
-                    Messages.ShowFailsAndClear();
 
                     return false;
                 }
