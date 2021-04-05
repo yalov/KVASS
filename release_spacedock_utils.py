@@ -1,8 +1,7 @@
 """utils for accessing to the spacedock"""
 # Public domain license.
 # Based on: https://github.com/ihsoft/KSPDev_ReleaseBuilder
-# $version: 2
-# -*- coding: utf-8 -*-
+# $version: 3
 
 import json
 import urllib.request
@@ -21,7 +20,8 @@ API_BASE_URL = 'https://spacedock.info'
 # The actions paths.
 API_AUTHORIZE = '/api/login'
 API_UPDATE_MOD_TMPL = '/api/mod/{mod_id}/update'
-API_GET_VERSIONS = '/api/kspversions'
+# API_GET_VERSIONS = '/api/kspversions'
+API_GET_VERSIONS = '/api/3102/versions'
 API_GET_MOD = '/api/mod/{mod_id}'
 
 # The authorization cookie. It's only created once. To refresh it, simply

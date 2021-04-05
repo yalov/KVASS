@@ -23,7 +23,7 @@
    so it doesn't make much sence.
  * option for autoremove finished planning timers on launch. 
  * added SpeedUp by passing Years (5 years is default)
- * rename bureaucracy to constTime
+ * renamed bureaucracy to constTime
 
 ### Version 1.0.0
  * bump version
