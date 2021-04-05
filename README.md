@@ -8,7 +8,7 @@
 
 Simulation and Planning Time without any restriction.
 
-![scheme](https://i.imgur.com/woOyOm0.jpeg)
+![scheme](https://i.imgur.com/q07E7IO.png)
 
 ## Simulation
 
