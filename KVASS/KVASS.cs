@@ -10,6 +10,13 @@ using KSP.UI.TooltipTypes;
 
 namespace KVASSNS
 {
+    enum NewAlarmQueueType
+    {
+        Append, 
+        Prepend,
+        No_Queue
+    }
+
     [KSPAddon(KSPAddon.Startup.FlightAndEditor, false)]
     public class KVASS : MonoBehaviour
     {
@@ -79,6 +86,8 @@ namespace KVASSNS
         Vector3 diff;
         Vector3 diff_space;
 
+        static AlarmUtils alarmutils;
+
         public void Awake()
         {
             if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
@@ -97,7 +106,12 @@ namespace KVASSNS
 
         public void Start()
         {
-            KACWrapper.InitKACWrapper();
+            alarmutils = new AlarmUtils(settingsPlan.KACEnable);
+
+            if (settingsPlan.KACEnable)
+            {
+                KACWrapper.InitKACWrapper();
+            }
 
             if (HighLogic.LoadedScene == GameScenes.EDITOR)
             {
@@ -111,13 +125,13 @@ namespace KVASSNS
             {
                 string vesselName = Utils.GetVesselName();
 
-                if (KACWrapper.APIReady && settingsPlan.Enable && settingsPlan.AutoRemoveFinishedTimers)
+                if (settingsPlan.Enable && settingsPlan.AutoRemoveFinishedTimers)
                 {
-                    var alarm = KACUtils.GetAlarm(KACUtils.AlarmTitle(vesselName));
+                    var alarm = alarmutils.GetAlarm(Utils.AlarmTitle(vesselName));
 
                     if (alarm.Finished())
                     {
-                        bool success = KACUtils.RemoveAlarm(alarm.ID);
+                        bool success = alarmutils.RemoveAlarm(alarm.ID);
                         Log("Removing alarm, success:{0}", success);
                     }
                 }
@@ -127,7 +141,7 @@ namespace KVASSNS
 
         public void OnDisable()
         {
-            Log("OnDisable");
+            //Log("OnDisable");
             G﻿ameEvents.onEditorStarted.Remove(OnEditorStarted);
         }
 
@@ -146,7 +160,7 @@ namespace KVASSNS
             buttons.Add(new ButtonData("KVASS/Textures/Simulation", "Simulation", OnSimulationButtonClick, simEnabled));
 
 
-            bool planEnabled = settingsPlan.Enable && !(settingsPlan.IgnoreSPH && !isVAB) && KACWrapper.APIReady;
+            bool planEnabled = settingsPlan.Enable && !(settingsPlan.IgnoreSPH && !isVAB);
             if (settingsPlan.Queue)
             {
                 if (settingsPlan.QueueAppend)
@@ -182,7 +196,6 @@ namespace KVASSNS
                     Log("Failed to find the Steam Button");
                 }
 
-
             foreach (var b in buttons)
                 b.CreateTopBarButton(buttonLaunch, topBar);
 
@@ -201,23 +214,33 @@ namespace KVASSNS
         }
 
 
-        static void OnPlanningButtonClick() => AnyButtonClick(queueAppend: null);
-        static void OnPrependButtonClick() => AnyButtonClick(queueAppend: false);
-        static void OnAppendButtonClick() => AnyButtonClick(queueAppend: true);
+        static void OnPlanningButtonClick() => AnyButtonClick(queueButton: NewAlarmQueueType.No_Queue);
+        static void OnPrependButtonClick() => AnyButtonClick(queueButton: NewAlarmQueueType.Prepend);
+        static void OnAppendButtonClick() => AnyButtonClick(queueButton: NewAlarmQueueType.Append);
   
 
-        static void AnyButtonClick(bool? queueAppend)
+        static void AnyButtonClick(NewAlarmQueueType queueButton)
         {
-            string VesselName = Utils.GetVesselName();
+            string alarmTitle = Utils.AlarmTitle(Utils.GetVesselName());
 
-            if (KACWrapper.APIReady)
-            {
-                string alarmTitle = KACUtils.AlarmTitle(VesselName);
+            float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+            float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
+            double time = CalcAlarmTime(cost, mass);
+            double alarm_ut = Utils.UT() + time;
+            
+            string desc = Localizer.Format("#KVASS_alarm_note",
+                            cost.ToString("F0"), (time / KSPUtil.dateTimeFormatter.Day).ToString("F1"));
 
-                float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
-                float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
-                CreateNewAlarm(alarmTitle, cost, mass, queueAppend);
-            }
+            Alarm alarm = new Alarm(alarmTitle, desc, alarm_ut, time);
+
+            if (queueButton == NewAlarmQueueType.Append)
+                alarmutils.AlarmAppendedToQueue(ref alarm);
+            else if (queueButton == NewAlarmQueueType.Prepend)
+                alarmutils.AlarmPrependedToQueue(alarm);
+
+            alarm.CreateonGUI();
+
+            Messages.ShowAndClear(3, Messages.DurationType.CLEVERCONSTPERLINE);
         }
 
 
@@ -267,27 +290,19 @@ namespace KVASSNS
 
         void MoveAllButtons()
         {
-            int index = 0;
+            //int index = 0;
+            //foreach (var b in buttons)
+            //    if (b.Enabled)
+            //        b.Object.transform.position = buttonLaunch.transform.position - ++index * diff;
+
+            //foreach (var sb in StockButtons)
+            //    sb.transform.position = buttonLaunch.transform.position - diff_space - ++index * diff;
+
+            int index = StockButtons.Count;
+
             foreach (var b in buttons)
-            {
                 if (b.Enabled)
-                {
-                    b.Object.transform.position = buttonLaunch.transform.position - ++index * diff;
-                }
-            }
-
-            
-            //bool mechjebPresent = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name == "MechJeb2");
-
-            //Vector3 mj_space = new Vector3(146, 0, 0);
-
-            Log(diff_space);
-            Log(diff);
-            foreach (var sb in StockButtons)
-            {
-                sb.transform.position = buttonLaunch.transform.position - diff_space - ++index * diff;
-                //if (mechjebPresent) sb.transform.position -= mj_space;
-            }
+                    b.Object.transform.position = buttonLaunch.transform.position - 2*diff_space - ++index * diff;
 
         }
 
@@ -376,50 +391,6 @@ namespace KVASSNS
             }
         }
 
-        static string CreateNewAlarm(string title, float cost, float mass, bool? queueAppend = null)
-        {
-
-            double time = CalcAlarmTime(cost, mass);
-
-            string aID = "";
-            if (KACWrapper.APIReady)
-            {
-                double ut = Utils.UT(); // HighLogic.CurrentGame.UniversalTime; // HighLogic.CurrentGame.flightState.universalTime;
-                aID = KACWrapper.KAC.CreateAlarm(
-                    KACWrapper.KACAPI.AlarmTypeEnum.Raw,
-                    title,
-                    ut + time);
-
-
-                if (!String.IsNullOrEmpty(aID))
-                {
-                    //if the alarm was made get the object so we can update it
-                    var alarm = KACWrapper.KAC.Alarms.First(z => z.ID == aID);
-
-                    // a.Remaining doesn't work in the VAB/SPH
-
-                    alarm.Notes = Localizer.Format("#KVASS_alarm_note",
-                        cost.ToString("F0"),
-                        (time / KSPUtil.dateTimeFormatter.Day).ToString("F1"));
-                       
-                    alarm.AlarmMargin = 0;
-
-                    if (settingsPlan.KillTimeWarp)
-                    {
-                        alarm.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.KillWarpOnly;
-                    }
-                    else
-                    {
-                        alarm.AlarmAction = KACWrapper.KACAPI.AlarmActionEnum.DoNothing;
-                    }
-
-                    KACListener.AlarmCreatedQueueChange(alarm, queueAppend);
-
-                }
-            }
-            return aID;
-        }
-
         static double CalcAlarmTime(float cost, float mass)
         {
             //Log("cost: " + cost + "mass: " + mass);
@@ -457,8 +428,8 @@ namespace KVASSNS
                 LogStrList.Add(Localizer.Format("#KVASS_time_Calendar", date, dateNextSpeedUp,speedups));
             }
 
-            Log("GetUniversalTime: " + Planetarium.GetUniversalTime());
-            Log("Years: " + Planetarium.GetUniversalTime() / KSPUtil.dateTimeFormatter.Year);
+            //Log("GetUniversalTime: " + Planetarium.GetUniversalTime());
+            //Log("Years: " + Planetarium.GetUniversalTime() / KSPUtil.dateTimeFormatter.Year);
 
             if (settingsPlan2.RepSpeedUp && career)
             {

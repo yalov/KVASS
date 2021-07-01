@@ -85,7 +85,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="KACListener.cs" />
+    <Compile Include="ACAUtils.cs" />
+    <Compile Include="Alarm.cs" />
+    <Compile Include="AlarmListener.cs" />
     <Compile Include="KACUtils.cs" />
     <Compile Include="KACWrapper.cs" />
     <Compile Include="Logging.cs" />

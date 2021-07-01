@@ -10,16 +10,7 @@ namespace KVASSNS
     public static class KACUtils
     {
 
-        public static string AlarmTitle(string vesselName)
-        {
-            return Localizer.Format("#KVASS_alarm_title_prefix") + " " + Localizer.Format(vesselName);
-        }
-        public static string VesselName(string alarmTitle)
-        {
-            if (String.IsNullOrEmpty(alarmTitle)) return "";
 
-            return alarmTitle.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
-        }
 
         /// <summary>
         /// How many seconds remains until alarm will be finished. 

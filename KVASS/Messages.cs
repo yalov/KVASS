@@ -39,8 +39,7 @@ namespace KVASSNS
         {
             if (color == null) PostScreenMessage(message, duration);
 
-            UnityEngine.Color c;
-            if (UnityEngine.ColorUtility.TryParseHtmlString(color, out c))
+            if (UnityEngine.ColorUtility.TryParseHtmlString(color, out UnityEngine.Color c))
                 PostScreenMessage(message, duration, color: c);
             else
                 PostScreenMessage(message, duration);
@@ -49,7 +48,14 @@ namespace KVASSNS
         
         public static void Add(string message, int key=0, string color = null)
         {
-            messages.Add(key, new Duplet(message, color));
+            try
+            {
+                messages.Add(key, new Duplet(message, color));
+            }
+            catch (Exception)
+            {
+                Logging.Log("Can't add message, index: " + key);
+            }
         }
 
         public static void Append(string message, string color = null)

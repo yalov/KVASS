@@ -17,13 +17,12 @@
    you don't need to write "Test" since there is spetial button for the Simulation
    Also you have separate buttons for Append/Prepend (disableable), and it is possible to add any amount of equally named vessels with a same name
  * enabled queue by default on all difficulty preset
- * enabled by default SpeedUp by passing Years (5 years is default)
+ * option for autoremove finished planning timers on launch. 
+ * added SpeedUp by passing Years (5 years is default)
  * disabled speedup by Rep by default. 
    It is very easy to get >700 at early career with default Rep settings without leaving homeworld SOI, 
    so it doesn't make much sence.
- * option for autoremove finished planning timers on launch. 
- * added SpeedUp by passing Years (5 years is default)
- * rename bureaucracy to constTime
+ * renamed bureaucracy to constTime
 
 ### Version 1.0.0
  * bump version

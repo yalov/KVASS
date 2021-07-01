@@ -105,6 +105,9 @@ namespace KVASSNS
         [GameParameters.CustomIntParameterUI("#KVASS_plan_enable")]
         public bool Enable { get; private set; } = true;
 
+        [GameParameters.CustomIntParameterUI("#KVASS_plan_KAC_enable")]
+        public bool KACEnable { get; private set; } = false;
+
         [GameParameters.CustomIntParameterUI("#KVASS_plan_ignore_SPH")]
         public bool IgnoreSPH { get; private set; } = false;
 
