@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.102
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KVASS", "KVASS\KVASS.csproj", "{29393587-D98B-4C17-8BD1-829636B6B6FC}"
 EndProject
@@ -10,9 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		buildDeploy.bat = buildDeploy.bat
 		buildRelease.bat = buildRelease.bat
 		ChangeLog.md = ChangeLog.md
-		README.md = README.md
-		GameData\KVASS\SettingRegex.cfg = GameData\KVASS\SettingRegex.cfg
 		KVASS.version = KVASS.version
+		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Localization", "Localization", "{E9E527A7-4F6B-4CFF-B1CE-58B67B237048}"

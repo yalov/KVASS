@@ -1,5 +1,9 @@
 ## ChangeLog:
 
+### Version 2.0.10 (Beta)
+ * ksp 1.12
+ * using stock Alarm Clock App by default
+
 ### Version 2.0.2
  * fix doubling time of the appeding alarm
 

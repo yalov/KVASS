@@ -5,7 +5,7 @@
 	"RELEASESDIR": "Releases",
 	"CHANGELOG": "ChangeLog.md",
 	"DRAFT": false,
-	"PRERELEASE": false,
+	"PRERELEASE": true,
 	"SPACEDOCK_ID": "2138",
 	"FORUM_ID": "183393"
 }
