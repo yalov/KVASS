@@ -269,7 +269,7 @@ namespace KVASSNS
                     }
                 case AlarmType.AlarmClockApp:
                     {
-                        IEnumerable<AlarmTypeBase> alarms = ACAUtils.GetSortedPlanningActiveAlarms();
+                        var alarms = ACAUtils.GetSortedPlanningActiveAlarms();
 
                         if (alarms.Any())
                         {

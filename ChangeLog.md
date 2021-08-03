@@ -1,8 +1,14 @@
 ## ChangeLog:
 
+### Version 2.0.11 (Beta)
+ * take into account cost of a kerbal's inventory
+ * ksp 1.12.2
+
 ### Version 2.0.10 (Beta)
  * ksp 1.12
  * using stock Alarm Clock App by default
+ * [known bug]
+   Adding new alarm when Alarm Clock App GUI is opened, makes the alarm be showed in the GUI as 0:00:00 until scene change.
 
 ### Version 2.0.2
  * fix doubling time of the appeding alarm

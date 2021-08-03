@@ -223,7 +223,7 @@ namespace KVASSNS
         {
             string alarmTitle = Utils.AlarmTitle(Utils.GetVesselName());
 
-            float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
+            float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _, ShipConstruction.ShipManifest);
             float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
             double time = CalcAlarmTime(cost, mass);
             double alarm_ut = Utils.UT() + time;
