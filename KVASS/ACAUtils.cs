@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static KVASSNS.Logging;
 
 namespace KVASSNS
 {
@@ -20,22 +21,26 @@ namespace KVASSNS
             var alarms = AlarmClockScenario.Instance.alarms;
 
             var enumerator = alarms.GetListEnumerator();
+            Log("GetAlarm " + alarmTitle);
             while (enumerator.MoveNext())
             {
+                Log("GetAlarm " + enumerator.Current.title + " " +  enumerator.Current.Id);
                 if (enumerator.Current.title == alarmTitle)
                     return enumerator.Current;
             }
             return null;
         }
 
-        public static IEnumerable<AlarmTypeBase> GetPlanningActiveAlarms()
+        public static IEnumerable<AlarmTypeRaw> GetPlanningActiveAlarms()
         {
 
             var alarms = AlarmClockScenario.Instance.alarms;
 
             var enumerator = alarms.GetListEnumerator();
 
-            List<AlarmTypeBase> list = new List<AlarmTypeBase>();
+            List<AlarmTypeRaw> list = new List<AlarmTypeRaw>();
+
+            
 
             while (enumerator.MoveNext())
             {
@@ -43,7 +48,8 @@ namespace KVASSNS
                     enumerator.Current.title.StartsWith(Localizer.Format("#KVASS_alarm_title_prefix"), StringComparison.Ordinal)
                     )
                 {
-                    list.Add(enumerator.Current);
+                    if (enumerator.Current is AlarmTypeRaw)
+                        list.Add(enumerator.Current as AlarmTypeRaw);
                 }
 
             }
@@ -51,7 +57,7 @@ namespace KVASSNS
             return list;
         }
 
-        public static IEnumerable<AlarmTypeBase> GetSortedPlanningActiveAlarms()
+        public static IEnumerable<AlarmTypeRaw> GetSortedPlanningActiveAlarms()
         {
             return GetPlanningActiveAlarms().OrderBy(z => z.ut);
         }

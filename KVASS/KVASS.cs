@@ -90,11 +90,11 @@ namespace KVASSNS
 
         public void Awake()
         {
-            if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
-            {
-                Log(HighLogic.CurrentGame.Mode + " mode is not supported.");
-                Destroy(gameObject); return;
-            }
+            //if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
+            //{
+            //    Log(HighLogic.CurrentGame.Mode + " mode is not supported.");
+            //    Destroy(gameObject); return;
+            //}
 
 
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASSSimSettings>();
@@ -106,6 +106,9 @@ namespace KVASSNS
 
         public void Start()
         {
+
+
+
             alarmutils = new AlarmUtils(settingsPlan.KACEnable);
 
             if (settingsPlan.KACEnable)
@@ -123,14 +126,20 @@ namespace KVASSNS
             // remove alarm
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT)
             {
+                Log("Flight======");
+
+
                 string vesselName = Utils.GetVesselName();
 
                 if (settingsPlan.Enable && settingsPlan.AutoRemoveFinishedTimers)
                 {
+                    Log("Flight 3========");
                     var alarm = alarmutils.GetAlarm(Utils.AlarmTitle(vesselName));
 
+                    Log("Flight " + alarm.Remaining());
                     if (alarm.Finished())
                     {
+                        Log("Flight 4");
                         bool success = alarmutils.RemoveAlarm(alarm.ID);
                         Log("Removing alarm, success:{0}", success);
                     }
