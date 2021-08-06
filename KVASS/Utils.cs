@@ -78,6 +78,9 @@ namespace KVASSNS
 
             return alarmTitle.Replace(Localizer.Format("#KVASS_alarm_title_prefix"), "").Trim();
         }
+
+        public static string Days(double seconds, string format = "F1") => (seconds / KSPUtil.dateTimeFormatter.Day).ToString(format);
+        
     }
 
 }

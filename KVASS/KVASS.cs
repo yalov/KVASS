@@ -90,25 +90,22 @@ namespace KVASSNS
 
         public void Awake()
         {
-            //if (HighLogic.CurrentGame.Mode != Game.Modes.CAREER && HighLogic.CurrentGame.Mode != Game.Modes.SCIENCE_SANDBOX)
-            //{
-            //    Log(HighLogic.CurrentGame.Mode + " mode is not supported.");
-            //    Destroy(gameObject); return;
-            //}
-
+            if (!(HighLogic.CurrentGame.Mode == Game.Modes.CAREER
+                || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX
+                || HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX))
+            {
+                Log(HighLogic.CurrentGame.Mode + " mode is not supported.");
+                Destroy(gameObject); return;
+            }
 
             settingsSim = HighLogic.CurrentGame.Parameters.CustomParams<KVASSSimSettings>();
             settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
             settingsPlan2 = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings2>();
             //  settingsGame = HighLogic.CurrentGame.Parameters.Difficulty;
-
         }
 
         public void Start()
         {
-
-
-
             alarmutils = new AlarmUtils(settingsPlan.KACEnable);
 
             if (settingsPlan.KACEnable)
@@ -126,22 +123,15 @@ namespace KVASSNS
             // remove alarm
             else if (HighLogic.LoadedScene == GameScenes.FLIGHT)
             {
-                Log("Flight======");
-
-
                 string vesselName = Utils.GetVesselName();
 
                 if (settingsPlan.Enable && settingsPlan.AutoRemoveFinishedTimers)
                 {
-                    Log("Flight 3========");
                     var alarm = alarmutils.GetAlarm(Utils.AlarmTitle(vesselName));
 
-                    Log("Flight " + alarm.Remaining());
                     if (alarm.Finished())
                     {
-                        Log("Flight 4");
                         bool success = alarmutils.RemoveAlarm(alarm.ID);
-                        Log("Removing alarm, success:{0}", success);
                     }
                 }
                 Destroy(this); return;
@@ -153,8 +143,6 @@ namespace KVASSNS
             //Log("OnDisable");
             G﻿ameEvents.onEditorStarted.Remove(OnEditorStarted);
         }
-
-
 
         public void CreateTopBarButtons()
         {
@@ -168,7 +156,6 @@ namespace KVASSNS
             bool simEnabled = settingsSim.Enable && !(settingsSim.IgnoreSPH && !isVAB);
             buttons.Add(new ButtonData("KVASS/Textures/Simulation", "Simulation", OnSimulationButtonClick, simEnabled));
 
-
             bool planEnabled = settingsPlan.Enable && !(settingsPlan.IgnoreSPH && !isVAB);
             if (settingsPlan.Queue)
             {
@@ -180,8 +167,6 @@ namespace KVASSNS
             }
             else
                 buttons.Add(new ButtonData("KVASS/Textures/Planning", "Planning", OnPlanningButtonClick, planEnabled));
-
-
 
             GameObject topBar = GameObject.Find("Top Bar");
 
@@ -195,6 +180,7 @@ namespace KVASSNS
 
             bool steamPresent = AssemblyLoader.loadedAssemblies.Any(a => a.assembly.GetName().Name == "KSPSteamCtrlr");
             if (steamPresent)
+            {
                 try
                 {
                     GameObject buttonSteam = EditorLogic.fetch.steamBtn.gameObject;
@@ -204,6 +190,7 @@ namespace KVASSNS
                 {
                     Log("Failed to find the Steam Button");
                 }
+            }
 
             foreach (var b in buttons)
                 b.CreateTopBarButton(buttonLaunch, topBar);
@@ -234,11 +221,12 @@ namespace KVASSNS
 
             float cost = EditorLogic.fetch.ship.GetShipCosts(out _, out _, ShipConstruction.ShipManifest);
             float mass = EditorLogic.fetch.ship.GetTotalMass() * 1000;
-            double time = CalcAlarmTime(cost, mass);
+            double time = CalcAlarmTime(cost, mass, out string desc);
             double alarm_ut = Utils.UT() + time;
+
             
-            string desc = Localizer.Format("#KVASS_alarm_note",
-                            cost.ToString("F0"), (time / KSPUtil.dateTimeFormatter.Day).ToString("F1"));
+
+
 
             Alarm alarm = new Alarm(alarmTitle, desc, alarm_ut, time);
 
@@ -299,14 +287,6 @@ namespace KVASSNS
 
         void MoveAllButtons()
         {
-            //int index = 0;
-            //foreach (var b in buttons)
-            //    if (b.Enabled)
-            //        b.Object.transform.position = buttonLaunch.transform.position - ++index * diff;
-
-            //foreach (var sb in StockButtons)
-            //    sb.transform.position = buttonLaunch.transform.position - diff_space - ++index * diff;
-
             int index = StockButtons.Count;
 
             foreach (var b in buttons)
@@ -328,15 +308,14 @@ namespace KVASSNS
         {
             if (HighLogic.CurrentGame.Mode == Game.Modes.CAREER)
             {
-                double shipCost = EditorLogic.fetch.ship.GetShipCosts(out _, out _);
-                double simulCost = 0.01 * settingsSim.CareerVessel * shipCost;
+                double shipCost = EditorLogic.fetch.ship.GetShipCosts(out _, out _, ShipConstruction.ShipManifest);
+                double simulCost = 0;
 
-                if (settingsSim.CareerIsConst)
-                    simulCost += settingsSim.CareerConst;
+                if (settingsSim.RelCostEnabled)
+                    simulCost += 0.01 * settingsSim.RelCost * shipCost;
 
-                if (simulCost == 0) return true;
-
-
+                if (settingsSim.ConstCostEnabled)
+                    simulCost += settingsSim.ConstCost;
 
                 if (Funding.Instance.Funds >= shipCost + simulCost)
                 {
@@ -364,14 +343,15 @@ namespace KVASSNS
                 }
             }
 
-            else // if (HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
+            else if (HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX)
             {
-                float science_points = settingsSim.ScienceVessel * EditorLogic.fetch.ship.GetTotalMass() / 100;
+                float science_points = 0;
 
-                if (settingsSim.ScienceIsConst)
-                    science_points += settingsSim.ScienceConst;
+                if (settingsSim.RelScienceEnabled)
+                    science_points += settingsSim.RelScience * EditorLogic.fetch.ship.GetTotalMass() / 100;
 
-                if (science_points == 0) return true;
+                if (settingsSim.ConstScienceEnabled)
+                    science_points += settingsSim.ConstScience;
 
                 if (ResearchAndDevelopment.Instance.Science >= science_points)
                 {
@@ -398,33 +378,54 @@ namespace KVASSNS
                     return false;
                 }
             }
+            else // SANDBOX
+            {
+                return true;
+            }
         }
 
-        static double CalcAlarmTime(float cost, float mass)
+        static double CalcAlarmTime(float cost, float mass, out string desc)
         {
-            //Log("cost: " + cost + "mass: " + mass);
             bool career = HighLogic.CurrentGame.Mode == Game.Modes.CAREER;
-            double time;
+            bool career_or_science = (
+                HighLogic.CurrentGame.Mode == Game.Modes.CAREER ||
+                HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX);
 
-            if (career)
-                time = cost * settingsPlan2.CareerSeconds;
-            else
-                time = mass * settingsPlan2.ScienceSeconds;
+            bool cost_mass = settingsPlan2.SecondsPerFundEnable && settingsPlan2.SecondsPerKgEnable;
+            double time = 0;
+            desc = "";
+            bool SpeedUps = false;
 
             List<string> LogStrList = new List<string>();
-            LogStrList.Add(Localizer.Format("#KVASS_time_short1", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1")));
+            String LogShort = Localizer.Format("#KVASS_time");
+
+
+            if (settingsPlan2.SecondsPerFundEnable)
+            {
+                double time_cost = cost * settingsPlan2.SecondsPerFund;
+                time += time_cost;
+                LogShort += (cost_mass ? "(" : "") + Utils.Days(time_cost);
+                desc += Localizer.Format("#KVASS_alarm_note_cost", cost.ToString("F0"));
+            }
+            if (settingsPlan2.SecondsPerKgEnable)
+            {
+                double time_mass = mass * settingsPlan2.SecondsPerKg;
+                time += time_mass;
+                LogShort += (cost_mass ? " + " : "") + Utils.Days(time_mass) + (cost_mass ? ")" : "");
+                desc += Localizer.Format("#KVASS_alarm_note_mass", mass.ToString("F0"));
+            }
 
 
             if (settingsPlan2.CalendarSpeedUp)
             {
-                
+                SpeedUps = true;
                 int fullYears = (int)(Planetarium.GetUniversalTime() / KSPUtil.dateTimeFormatter.Year);
                 int fulldays = (int)((Planetarium.GetUniversalTime() - fullYears * KSPUtil.dateTimeFormatter.Year) / KSPUtil.dateTimeFormatter.Day);
                 string date = "Y" + (fullYears + 1) + "D" + (fulldays + 1);
 
                 int speedups = fullYears / settingsPlan2.CalendarYearsToNextLevel + 1;
-                speedups = Math.Min(speedups, settingsPlan2.CalendarYearsSpeedUpsMaxCount) ;
-                
+                speedups = Math.Min(speedups, settingsPlan2.CalendarYearsSpeedUpsMaxCount);
+
                 string dateNextSpeedUp;
                 if (speedups == settingsPlan2.CalendarYearsSpeedUpsMaxCount)
                     dateNextSpeedUp = "No";
@@ -433,70 +434,78 @@ namespace KVASSNS
 
 
                 time /= speedups;
-                LogStrList[0] += " / " + speedups;
-                LogStrList.Add(Localizer.Format("#KVASS_time_Calendar", date, dateNextSpeedUp,speedups));
+                LogShort += " / " + speedups;
+                LogStrList.Add(Localizer.Format("#KVASS_time_Calendar", date, dateNextSpeedUp, speedups));
             }
-
-            //Log("GetUniversalTime: " + Planetarium.GetUniversalTime());
-            //Log("Years: " + Planetarium.GetUniversalTime() / KSPUtil.dateTimeFormatter.Year);
 
             if (settingsPlan2.RepSpeedUp && career)
             {
+                SpeedUps = true;
                 int currRep = Math.Max((int)Reputation.CurrentRep, 0);
                 int lines = currRep / settingsPlan2.RepToNextLevel + 1;
                 time /= lines;
-                LogStrList[0] += " / " + lines;
+                LogShort += " / " + lines;
                 LogStrList.Add(Localizer.Format("#KVASS_time_Reputation", lines, currRep, settingsPlan2.RepToNextLevel));
             }
 
             if (settingsPlan2.KerbSpeedUp)
             {
+                SpeedUps = true;
                 int availableKerbs = HighLogic.CurrentGame.CrewRoster.GetAvailableCrewCount();
 
                 int teams = availableKerbs / settingsPlan2.KerbToNextLevel + 1;
                 time /= teams;
-                LogStrList[0] += " / " + teams;
+                LogShort += " / " + teams;
                 LogStrList.Add(Localizer.Format("#KVASS_time_Kerbals", teams, availableKerbs, settingsPlan2.KerbToNextLevel));
             }
 
-            if (settingsPlan2.SciSpeedUp)
+            if (settingsPlan2.SciSpeedUp && career_or_science)
             {
+                SpeedUps = true;
                 int currScience = Math.Max((int)ResearchAndDevelopment.Instance.Science, 0);
 
                 int scilevel = currScience / settingsPlan2.SciToNextLevel + 1;
                 time /= scilevel;
-                LogStrList[0] += " / " + scilevel;
+                LogShort += " / " + scilevel;
                 LogStrList.Add(Localizer.Format("#KVASS_time_Science", scilevel, currScience, settingsPlan2.SciToNextLevel));
             }
 
             // The last one. The SpeedUps do not affect. 
             if (settingsPlan2.ConstTime)
             {
+                SpeedUps = true;
                 double constTime_increment = settingsPlan2.ConstTimeDays * KSPUtil.dateTimeFormatter.Day;
                 time += constTime_increment;
-                LogStrList[0] += " + " + settingsPlan2.ConstTimeDays;
+                LogShort += " + " + settingsPlan2.ConstTimeDays;
                 LogStrList.Add(Localizer.Format("#KVASS_time_ConstTime", settingsPlan2.ConstTimeDays));
             }
 
-            LogStrList[0] += Localizer.Format("#KVASS_time_short2", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1"));
 
-            LogStrList.Add(LogStrList[0]);
-            LogStrList.RemoveAt(0);
+            
+
+            LogShort += Localizer.Format("#KVASS_time_end", Utils.Days(time));
+            desc += LogShort;
+
+            LogStrList.Insert(0, LogShort);
+
+            if (SpeedUps)
+                LogStrList.Insert(1, Localizer.Format("#KVASS_time_where"));
+
 
             if (settingsPlan.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Shorter"))
             {
-                Messages.Add(Localizer.Format("#KVASS_time_short", (time / KSPUtil.dateTimeFormatter.Day).ToString("F1")), 1);
+                Messages.Add(Localizer.Format("#KVASS_time_short", Utils.Days(time)), 2);
+                Log(LogStrList);
             }
             else if (settingsPlan.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Short"))
             {
-                Messages.Add(LogStrList[0], 1);
+                Messages.Add(LogShort, 2);
+                Log(LogStrList);
             }
             else if (settingsPlan.ShowMessageSpeedUps == Localizer.Format("#KVASS_plan_message_Expanded"))
             {
-                Messages.Add(string.Join("\n", LogStrList), 1);
+                Messages.Add(string.Join("\n", LogStrList), 2);
             }
-
-            Log(LogStrList);
 
             return time;
         }

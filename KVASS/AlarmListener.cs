@@ -12,29 +12,39 @@ namespace KVASSNS
     [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     public class AlarmListener : MonoBehaviour
     {
+        public void Awake()
+        {
+            if (!(HighLogic.CurrentGame.Mode == Game.Modes.CAREER
+                || HighLogic.CurrentGame.Mode == Game.Modes.SCIENCE_SANDBOX
+                || HighLogic.CurrentGame.Mode == Game.Modes.SANDBOX))
+            {
+                Destroy(gameObject); return;
+            }
+        }
+
         public void Start()
         {
+            
+            //Log("Start1======");
 
-            Log("Start1======");
+            //var enumerator = AlarmClockScenario.Instance.alarms.GetListEnumerator();
+            //while (enumerator.MoveNext())
+            //{
+            //    Log("id: {0}, {1}, ut: {2:F0}, tta: {3:F0}, te: {4:F0}",
+            //        enumerator.Current.Id, enumerator.Current.title, enumerator.Current.ut, enumerator.Current.TimeToAlarm,
+            //    (enumerator.Current as AlarmTypeRaw).timeEntry);
+            //}
 
-            var enumerator = AlarmClockScenario.Instance.alarms.GetListEnumerator();
-            while (enumerator.MoveNext())
-            {
-                Log("id: {0}, {1}, ut: {2:F0}, tta: {3:F0}, te: {4:F0}",
-                    enumerator.Current.Id, enumerator.Current.title, enumerator.Current.ut, enumerator.Current.TimeToAlarm,
-                (enumerator.Current as AlarmTypeRaw).timeEntry);
-            }
+            //Log("Start2=======");
 
-            Log("Start2=======");
-
-            var als = ACAUtils.GetSortedPlanningActiveAlarms();
-            foreach (var a in als)
-            {
-                Log("id: {0}, {1}, ut: {2:F0}, tta: {3:F0}, te: {4:F0}",
-                    a.Id, a.title, a.ut, a.TimeToAlarm,
-                a.timeEntry);
-            }
-            Log("Start3=======");
+            //var als = ACAUtils.GetSortedPlanningActiveAlarms();
+            //foreach (var a in als)
+            //{
+            //    Log("id: {0}, {1}, ut: {2:F0}, tta: {3:F0}, te: {4:F0}",
+            //        a.Id, a.title, a.ut, a.TimeToAlarm,
+            //    a.timeEntry);
+            //}
+            //Log("Start3=======");
 
             KVASSPlanSettings settingsPlan = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
 
@@ -50,7 +60,7 @@ namespace KVASSNS
                 }
                 else
                 {
-                    GameEvents.onAlarmAdded.Add(OnAlarmAdded);
+                    //GameEvents.onAlarmAdded.Add(OnAlarmAdded);
                     GameEvents.onAlarmRemoving.Add(OnAlarmRemoving);
                 }
             }
@@ -63,13 +73,13 @@ namespace KVASSNS
 
         public void OnDisable()
         {
-            G﻿ameEvents.onAlarmAdded.Remove(OnAlarmAdded);
+            //G﻿ameEvents.onAlarmAdded.Remove(OnAlarmAdded);
             GameEvents.onAlarmRemoving.Remove(OnAlarmRemoving);
         }
 
         private void KAC_onAlarmStateChanged(AlarmStateChangedEventArgs e)
         {
-            Log("KAC_onAlarmStateChanged");
+            //Log("KAC_onAlarmStateChanged");
             if (e.eventType == KACAlarm.AlarmStateEventsEnum.Deleted)
             {
                 if (e.alarm == null || e.alarm.Finished()) return;
@@ -103,34 +113,21 @@ namespace KVASSNS
                         alarms[i].AlarmTime -= planningTime;
                     }
 
-                    int alarmsMoved = alarms.Count - (del_index + 1);
-
-                    Messages.Add(Localizer.Format("#KVASS_alarm_deleted", deleting_alarm.Name), 0);
-
-                    if (alarmsMoved == 1)
-                    {
-                        string ShipName = Utils.VesselName(alarms[del_index + 1].Name);
-                        Messages.Add(Localizer.Format("#KVASS_alarm_deleted_another", ShipName), 1);
-                    }
-                    else if (alarmsMoved > 1)
-                        Messages.Add(Localizer.Format("#KVASS_alarm_deleted_others", alarmsMoved), 1);
-
-                    Messages.ShowAndClear(5, Messages.DurationType.CONST);
-
+                    RemovingMessages(deleting_alarm.Name, alarms.Count - del_index - 1);
                 }
             }
         }
 
         private void OnAlarmRemoving(AlarmTypeBase deleting_alarm)
         {
+            Log("OnAlarmRemoving: IsActive: " + deleting_alarm.IsActive);
+            
             if (deleting_alarm == null || deleting_alarm.Actioned) return;
 
             if (deleting_alarm.title.StartsWith(Localizer.Format("#KVASS_alarm_title_prefix"), StringComparison.Ordinal))
             {
                 var alarms = ACAUtils.GetSortedPlanningActiveAlarms().ToList();
-                Log("Rem alarms.Count " + alarms.Count);
                 int del_index = alarms.FindIndex(z => z.Id == deleting_alarm.Id);
-                Log("Rem del_index" + del_index);
 
                 double planning_UT_start;
 
@@ -143,52 +140,44 @@ namespace KVASSNS
 
                 double planningTime = Math.Round(planning_UT_end - planning_UT_start);
 
-                Log("Rem planning_UT_start " + planning_UT_start);
-                Log("Rem planning_UT_end " + planning_UT_end);
-                
-
-                //Log("planning_UT_end: " + planning_UT_end);
-                //Log("planning_UT_start: " + planning_UT_start);
-                //Log("planningTime: " + planningTime);
-
                 for (var i = del_index + 1; i < alarms.Count; i++)
                 {
-                    Log(String.Format("Rem Bef title:{0}, UT:{1:F0}, Time:{2:F0}", alarms[i].title, alarms[i].ut, alarms[i].timeEntry));
+                    //Log(String.Format("Rem Bef title:{0}, UT:{1:F0}, Time:{2:F0}", alarms[i].title, alarms[i].ut, alarms[i].timeEntry));
                     alarms[i].ut -= planningTime;
-                    //alarms[i].timeEntry -= planningTime;
-                    Log(String.Format("Rem Aft title:{0}, UT:{1:F0}, Time:{2:F0}", alarms[i].title, alarms[i].ut, alarms[i].timeEntry));
+
+                    alarms[i].timeEntry = alarms[i].ut - Utils.UT(); //-= planningTime;
+
+                    //Log(String.Format("Rem Aft title:{0}, UT:{1:F0}, Time:{2:F0}", alarms[i].title, alarms[i].ut, alarms[i].timeEntry));
                     alarms[i].OnScenarioUpdate();
                     alarms[i].UIInputPanelUpdate();
                 }
-
-                
-
-                String message = Localizer.Format("#KVASS_alarm_deleted", deleting_alarm.title);
-
-                int alarmsMoved = alarms.Count - (del_index + 1);
-                if (alarmsMoved == 1)
-                {
-                    string AlarmName = alarms[del_index + 1].title;
-                    message += "\n" + Localizer.Format("#KVASS_alarm_deleted_another", AlarmName);
-                }
-                else if (alarmsMoved > 1)
-                    message += "\n" + Localizer.Format("#KVASS_alarm_deleted_others", alarmsMoved);
-
-                Messages.QuickPost(message);
-                Log(message);
+                RemovingMessages(deleting_alarm.title, alarms.Count - del_index - 1);
             }
+        }
+
+
+        private void RemovingMessages(string deleted_title, int promoted_count)
+        {
+            Messages.Append(Localizer.Format("#KVASS_alarm_deleted", deleted_title));
+
+            if (promoted_count == 1)
+                Messages.Append(Localizer.Format("#KVASS_alarm_deleted_other", promoted_count));
+            else if (promoted_count > 1)
+                Messages.Append(Localizer.Format("#KVASS_alarm_deleted_others", promoted_count));
+
+            Messages.ShowAndClear(5, Messages.DurationType.CONST);
         }
 
         private void OnAlarmAdded(AlarmTypeBase data)
         {
-            Log(String.Format("OnAlarmAdded added title:{0}, UT:{1:F0}, timeEntry:{2:F0}", data.title, data.ut, (data as AlarmTypeRaw).timeEntry));
+            //Log(String.Format("OnAlarmAdded added title:{0}, UT:{1:F0}, timeEntry:{2:F0}", data.title, data.ut, (data as AlarmTypeRaw).timeEntry));
 
-            var alarms = ACAUtils.GetSortedPlanningActiveAlarms();
+            //var alarms = ACAUtils.GetSortedPlanningActiveAlarms();
             
-            foreach (var a in alarms)
-            {
-                Log(String.Format("OnAlarmAdded title:{0}, UT:{1:F0}, timeEntry:{2:F0}", a.title, a.ut, a.timeEntry));
-            }
+            //foreach (var a in alarms)
+            //{
+            //    Log(String.Format("OnAlarmAdded title:{0}, UT:{1:F0}, timeEntry:{2:F0}", a.title, a.ut, a.timeEntry));
+            //}
         }
 
     }

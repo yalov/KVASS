@@ -1,8 +1,13 @@
 ## ChangeLog:
 
-### Version 2.0.11 (Beta)
- * take into account cost of a kerbal's inventory
+### Version 2.5.0
  * ksp 1.12.2
+ * using stock Alarm Clock App by default
+ * Supported SANDBOX
+ * Planning time by cost and by mass is enabled in CAREER, SCIENCE and SANDBOX
+ * take into account cost of a kerbal's inventory
+ * [known bug] Applying changes on editing planning alarms breaks queue.  
+
 
 ### Version 2.0.10 (Beta)
  * ksp 1.12

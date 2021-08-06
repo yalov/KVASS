@@ -96,7 +96,7 @@ namespace KVASSNS
                 alarm.description = Description;
                 alarm.timeEntry = Time;
 
-                Log(String.Format("CreateonGUI ACA title:{0}, UT:{1:F0}, timeEntry:{2:F0}", alarm.title, alarm.ut, alarm.timeEntry));
+                //Log(String.Format("CreateonGUI ACA title:{0}, UT:{1:F0}, timeEntry:{2:F0}", alarm.title, alarm.ut, alarm.timeEntry));
 
                 if (settings.KillTimeWarp)
                     alarm.actions.warp = AlarmActions.WarpEnum.KillWarp;
@@ -117,9 +117,9 @@ namespace KVASSNS
                     var enumerator = AlarmClockScenario.Instance.alarms.GetListEnumerator();
                     while (enumerator.MoveNext())
                     {
-                        Log("id: {0}, {1}, ut: {2:F0}, TimeToAlarm: {3:F0}, timeEntry: {4:F0}",
-                            enumerator.Current.Id, enumerator.Current.title, enumerator.Current.ut, enumerator.Current.TimeToAlarm,
-                        (enumerator.Current as AlarmTypeRaw).timeEntry);
+                        //Log("id: {0}, {1}, ut: {2:F0}, TimeToAlarm: {3:F0}, timeEntry: {4:F0}",
+                        //    enumerator.Current.Id, enumerator.Current.title, enumerator.Current.ut, enumerator.Current.TimeToAlarm,
+                        //(enumerator.Current as AlarmTypeRaw).timeEntry);
 
                         if (enumerator.Current.ut == UT && enumerator.Current.title == Title)
                         {
@@ -154,11 +154,11 @@ namespace KVASSNS
 
                 case AlarmType.AlarmClockApp:
                     var aca_alarm = ACAUtils.GetAlarm(alarmTitle);
-                    Log("Alarm.GetAlarm " + aca_alarm.Id);
+                    //Log("Alarm.GetAlarm " + aca_alarm.Id);
                     if (aca_alarm != null && aca_alarm is AlarmTypeRaw)
                     {
                         alarm = new Alarm(aca_alarm.title, aca_alarm.description, aca_alarm.ut, (aca_alarm as AlarmTypeRaw).timeEntry, id: aca_alarm.Id.ToString());
-                        Log("Alarm.GetAlarm " + alarm.ID);
+                        //Log("Alarm.GetAlarm " + alarm.ID);
                     }
                         break;
             }
@@ -173,7 +173,6 @@ namespace KVASSNS
                     return KACUtils.RemoveAlarm(ID);
                    
                 case AlarmType.AlarmClockApp:
-                    Log(ID);
                     return AlarmClockScenario.DeleteAlarm(uint.Parse(ID));
                     
                 default:
@@ -198,13 +197,12 @@ namespace KVASSNS
             if (alarm == null) return;
 
             int alarmsMoved = 0;
-            string firstName = "";
 
             switch (AlarmType)
             {
                 case AlarmType.KerbalAlarmClock:
                     {
-                        Log("AlarmPrependedToQueue KAC");
+                        
 
                         var alarms = KACUtils.GetPlanningActiveAlarms();
 
@@ -212,26 +210,26 @@ namespace KVASSNS
                         {
                             a.AlarmTime += alarm.Time;
                             alarmsMoved++;
-                            if (alarmsMoved == 1) firstName = a.Name;
                         }
                         break;
                     }
                 case AlarmType.AlarmClockApp:
                     {
-                        Log("AlarmPrependedToQueue ACA");
+                        
 
                         var alarms = ACAUtils.GetPlanningActiveAlarms();
 
                         foreach (var a in alarms)
                         {
-                            Log(String.Format("Bef - title:{0}, UT:{1:F0}, timeEntry:{2:F0}", a.title, a.ut, a.timeEntry));
+                            //Log(String.Format("Bef - title:{0}, UT:{1:F0}, timeEntry:{2:F0}", a.title, a.ut, a.timeEntry));
                             a.ut += alarm.Time;
-                            a.timeEntry += alarm.Time;
+
+                            a.timeEntry = a.ut - Utils.UT(); // += alarm.Times
+
                             a.OnScenarioUpdate();
                             a.UIInputPanelUpdate();
                             alarmsMoved++;
-                            Log(String.Format("Aft - title:{0}, UT:{1:F0}, timeEntry:{2:F0}", a.title, a.ut, a.timeEntry));
-                            if (alarmsMoved == 1) firstName = a.title;
+                            //Log(String.Format("Aft - title:{0}, UT:{1:F0}, timeEntry:{2:F0}", a.title, a.ut, a.timeEntry));
                         }
                         break;
                     }
@@ -245,12 +243,11 @@ namespace KVASSNS
 
             if (alarmsMoved == 1)
             {
-                string shipname = Utils.VesselName(firstName);
-                Messages.Add(Localizer.Format("#KVASS_alarm_created_another", shipname), 2);
+                Messages.Add(Localizer.Format("#KVASS_alarm_created_other", alarmsMoved), 1);
             }
             else if (alarmsMoved > 1)
             {
-                Messages.Add(Localizer.Format("#KVASS_alarm_created_others", alarmsMoved), 2);
+                Messages.Add(Localizer.Format("#KVASS_alarm_created_others", alarmsMoved), 1);
             }
         }
 
@@ -262,7 +259,7 @@ namespace KVASSNS
             {
                 case AlarmType.KerbalAlarmClock:
                     {
-                        Log("AlarmAppendedToQueue ACA");
+                        
                         var alarms = KACUtils.GetSortedPlanningActiveAlarms();
 
                         if (alarms.Any())
@@ -290,11 +287,11 @@ namespace KVASSNS
                             double busy_UT_end = alarms.Last().ut;
                             double busyTime = Math.Round(busy_UT_end - Utils.UT());
 
-                            Log("busyTime: " + busyTime);
-                            Log(String.Format("Bef - title:{0}, UT:{1}, Time:{2}", alarm.Title, alarm.UT, alarm.Time));
+                            
+                            //Log(String.Format("Bef - title:{0}, UT:{1}, Time:{2}", alarm.Title, alarm.UT, alarm.Time));
                             alarm.UT += busyTime;
                             alarm.Time += busyTime;
-                            Log(String.Format("Aft - title:{0}, UT:{1}, Time:{2}", alarm.Title, alarm.UT, alarm.Time));
+                            //Log(String.Format("Aft - title:{0}, UT:{1}, Time:{2}", alarm.Title, alarm.UT, alarm.Time));
 
                             Messages.Add(Localizer.Format("#KVASS_alarm_appended", alarm.Title), 0);
                         }

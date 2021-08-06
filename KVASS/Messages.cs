@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static KVASSNS.Logging;
 
 
 namespace KVASSNS
@@ -12,7 +13,11 @@ namespace KVASSNS
         public const String OrangeAlpha = "#ffa500af";
 
 
-        public enum DurationType { CONST, CLEVERCONSTPERLINE, INCREMENT};
+        public enum DurationType { 
+            CONST,              // duration
+            CLEVERCONSTPERLINE, // duration per line
+            INCREMENT           // every next message stay additional duration
+        };
 
 
         /// <summary>
@@ -52,7 +57,10 @@ namespace KVASSNS
             {
                 messages.Add(key, new Duplet(message, color));
             }
-            catch (Exception)
+            catch (Exception ex) when (
+            ex is ArgumentNullException 
+            || ex is ArgumentException 
+            || ex is NotSupportedException) 
             {
                 Logging.Log("Can't add message, index: " + key);
             }
@@ -74,24 +82,37 @@ namespace KVASSNS
                 messages.Add(messages.Keys.First() - 1, new Duplet(message, color));
         }
 
-        public static void ShowAndClear(float duration = 5.0f, DurationType type = DurationType.CONST, String color = null)
+        public static void ShowAndClear(float duration = 5.0f, DurationType type = DurationType.CONST, String color = null, bool log = true)
         {
+            if (log)
+            {
+                string message = String.Join(", ", from m in messages select m.Value.Message.Replace("\n", ", "));
+                Log(message);
+            }
+
             switch (type)
             {
                 case DurationType.CONST:
-                    foreach (var pair in messages) QuickPost(pair.Value.Message, duration, color ?? pair.Value.Color);
-                    break;
+                    {
+                        string message = String.Join("\n", from m in messages select m.Value.Message);
 
+                        QuickPost(message, duration, color);
+                        break;
+                    }
                 case DurationType.CLEVERCONSTPERLINE:
-                    int countOfLines = 0;
-                    foreach (var pair in messages) countOfLines += pair.Value.Message.Split('\n').Length;
-                    foreach (var pair in messages) QuickPost(pair.Value.Message, countOfLines * duration, color ?? pair.Value.Color);
-                    break;
+                    {
+                        string message = String.Join("\n", from m in messages select m.Value.Message);
+                        var countOfLines = (from m in messages select m.Value.Message.Split('\n').Length).Sum();
 
+                        QuickPost(message, countOfLines * duration, color);
+                        break;
+                    }
                 case DurationType.INCREMENT:
-                    int i = 1;
-                    foreach (var pair in messages) QuickPost(pair.Value.Message, i++ * duration, color ?? pair.Value.Color);
-                    break;
+                    {
+                        int i = 1;
+                        foreach (var pair in messages) QuickPost(pair.Value.Message, i++ * duration, color ?? pair.Value.Color);
+                        break;
+                    }
             }
             messages.Clear();
         }
@@ -137,7 +158,8 @@ namespace KVASSNS
         }
 
 
-        //private static void ShowDialog(string message = "You can't afford to launch this vessel.",
+        //private static void ShowDia
+        //(string message = "You can't afford to launch this vessel.",
         //    string close_title = "Unable to Launch", float height = 100f)
         //{
         //    PopupDialog.SpawnPopupDialog(

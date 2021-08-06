@@ -40,8 +40,6 @@ namespace KVASSNS
                 return;
             }
 
-            //foreach (var a in args) log += ", " + a;
-
             log += string.Join(", ", args);
 
             Debug.Log(log);
