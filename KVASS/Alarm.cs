@@ -109,10 +109,7 @@ namespace KVASSNS
                 {
                     AlarmClockScenario.AddAlarm(alarm);
                     alarm.OnScenarioUpdate();
-                    alarm.UIInputPanelUpdate();
-
-
-                    
+                    alarm.UIInputPanelUpdate();                    
 
                     var enumerator = AlarmClockScenario.Instance.alarms.GetListEnumerator();
                     while (enumerator.MoveNext())
@@ -177,7 +174,6 @@ namespace KVASSNS
                     
                 default:
                     return false;
-                   
             }
         }
 
@@ -202,8 +198,6 @@ namespace KVASSNS
             {
                 case AlarmType.KerbalAlarmClock:
                     {
-                        
-
                         var alarms = KACUtils.GetPlanningActiveAlarms();
 
                         foreach (var a in alarms)

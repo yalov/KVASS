@@ -120,8 +120,7 @@ namespace KVASSNS
 
         private void OnAlarmRemoving(AlarmTypeBase deleting_alarm)
         {
-            Log("OnAlarmRemoving: IsActive: " + deleting_alarm.IsActive);
-            
+
             if (deleting_alarm == null || deleting_alarm.Actioned) return;
 
             if (deleting_alarm.title.StartsWith(Localizer.Format("#KVASS_alarm_title_prefix"), StringComparison.Ordinal))
@@ -165,7 +164,7 @@ namespace KVASSNS
             else if (promoted_count > 1)
                 Messages.Append(Localizer.Format("#KVASS_alarm_deleted_others", promoted_count));
 
-            Messages.ShowAndClear(5, Messages.DurationType.CONST);
+            Messages.ShowAndClear(3, Messages.DurationType.CONST);
         }
 
         private void OnAlarmAdded(AlarmTypeBase data)

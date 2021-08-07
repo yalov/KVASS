@@ -237,7 +237,7 @@ namespace KVASSNS
 
             alarm.CreateonGUI();
 
-            Messages.ShowAndClear(3, Messages.DurationType.CLEVERCONSTPERLINE);
+            Messages.ShowAndClear(2, Messages.DurationType.CLEVERCONSTPERLINE);
         }
 
 
@@ -485,6 +485,9 @@ namespace KVASSNS
 
             LogShort += Localizer.Format("#KVASS_time_end", Utils.Days(time));
             desc += LogShort;
+
+            if (settingsPlan.Queue && !settingsPlan.KACEnable)
+                desc = Localizer.Format("#KVASS_alarm_note") + desc;
 
             LogStrList.Insert(0, LogShort);
 
