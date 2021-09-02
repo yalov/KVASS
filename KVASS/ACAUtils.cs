@@ -21,10 +21,10 @@ namespace KVASSNS
             var alarms = AlarmClockScenario.Instance.alarms;
 
             var enumerator = alarms.GetListEnumerator();
-            Log("GetAlarm " + alarmTitle);
+            //Log("GetAlarm " + alarmTitle);
             while (enumerator.MoveNext())
             {
-                Log("GetAlarm " + enumerator.Current.title + " " +  enumerator.Current.Id);
+                //Log("GetAlarm " + enumerator.Current.title + " " +  enumerator.Current.Id);
                 if (enumerator.Current.title == alarmTitle)
                     return enumerator.Current;
             }

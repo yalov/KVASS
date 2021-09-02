@@ -129,7 +129,7 @@ namespace KVASSNS
                 {
                     var alarm = alarmutils.GetAlarm(Utils.AlarmTitle(vesselName));
 
-                    if (alarm.Finished())
+                    if (alarm?.Finished() ?? false)
                     {
                         bool success = alarmutils.RemoveAlarm(alarm.ID);
                     }
