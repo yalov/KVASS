@@ -1,5 +1,8 @@
 ## ChangeLog:
 
+### Version 2.5.2
+* fix missing new line character in the alarm desc after the scene change
+
 ### Version 2.5.1
 * fix NullReferenceException
 * remove log spam

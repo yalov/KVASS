@@ -1,13 +1,16 @@
+#!/usr/bin/python3
+
 """requirements:
 Python3.9
 pip install pyperclip GitPython PyGithub
 ./release_spacedock_utils.py
+./release_github.py
 make sure, that ssh is set up
     copy private key to ~/.ssh/
 
 Public domain license.
 https://github.com/yalov/SpeedUnitAnnex/blob/master/release.py
-version: 21
+version: 22
 
 Script loads release-arhive to github and spacedock
 you need to set values in the release.json
@@ -21,6 +24,15 @@ into a new file: release_token.json (alongside release.json)
 """
 
 import sys
+def show_exception_and_exit(exc_type, exc_value, tb):
+    import traceback
+    traceback.print_exception(exc_type, exc_value, tb)
+    print("\n" + __doc__ + "\n")
+    input("Press key to exit.")
+    sys.exit(-1)
+
+sys.excepthook = show_exception_and_exit
+
 import json
 import os.path
 import re
@@ -31,6 +43,9 @@ from release_github import PublishToGithub
 from release_spacedock_utils import GetSpacedockKSPVersions
 from release_spacedock_utils import GetSpacedockModDetails
 from release_spacedock_utils import PublishToSpacedock
+
+
+
 
 
 def archive_to(file):
@@ -73,6 +88,7 @@ def get_description(path):
 
 
 if __name__ == '__main__':
+
 
     jsn = json.load(open("release.json"))
     tkn = json.load(open("release_token.json"))

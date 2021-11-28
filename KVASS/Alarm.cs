@@ -27,7 +27,7 @@ namespace KVASSNS
             string id = "", WarpType warp = WarpType.DoNothing, AlarmType alarmType = AlarmType.AlarmClockApp)
         {
             Title = title;
-            Description = desc;
+            Description = desc?.Replace("\n", "<br>");
             UT = ut;
             Time = time;
             ID = id;
