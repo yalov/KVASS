@@ -40,7 +40,7 @@ namespace KVASSNS
         /// </summary>
         /// <param name="message"></param>
         /// <param name="duration"></param>
-        public static void QuickPost(string message, float duration = 5.0f, String color = null)
+        public static void QuickPost(string message, float duration = 5.0f, String color = null, bool Console_Log = false)
         {
             if (color == null) PostScreenMessage(message, duration);
 
@@ -48,6 +48,9 @@ namespace KVASSNS
                 PostScreenMessage(message, duration, color: c);
             else
                 PostScreenMessage(message, duration);
+
+            if (Console_Log)
+                Log(message);
         }
 
         

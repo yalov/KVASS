@@ -206,7 +206,10 @@ namespace KVASSNS
             bool success = SimulationPurchase();
 
             if (success)
+            {
+
                 Launch(EditorLogic.fetch.launchSiteName);
+            }
         }
 
 
@@ -320,6 +323,9 @@ namespace KVASSNS
                 if (Funding.Instance.Funds >= shipCost + simulCost)
                 {
                     Funding.Instance.AddFunds(-simulCost, TransactionReasons.VesselRollout);
+                    Messages.QuickPost(
+                        Localizer.Format("#KVASS_message_sim_funds", simulCost.ToString("F0")), Console_Log: true
+                    );
                     return true;
                 }
                 else
@@ -356,6 +362,10 @@ namespace KVASSNS
                 if (ResearchAndDevelopment.Instance.Science >= science_points)
                 {
                     ResearchAndDevelopment.Instance.AddScience(-science_points, TransactionReasons.VesselRollout);
+                    Messages.QuickPost(
+                        Localizer.Format("#KVASS_message_sim_sci", science_points.ToString("F1")), Console_Log: true
+                    );
+                    
                     return true;
                 }
                 else

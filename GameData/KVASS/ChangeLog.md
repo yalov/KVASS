@@ -1,5 +1,8 @@
 ## ChangeLog:
 
+### Version 2.5.3
+* add simulation message on Simulation launch in the editor
+
 ### Version 2.5.2
 * fix missing new line character in the alarm desc after the scene change
 
