@@ -227,18 +227,22 @@ namespace KVASSNS
             double time = CalcAlarmTime(cost, mass, out string desc);
             double alarm_ut = Utils.UT() + time;
 
-            
 
 
+            Alarm.WarpType warp;
+            if (settingsPlan.KillTimeWarp)
+                warp = Alarm.WarpType.KillWarp;
+            else
+                warp = Alarm.WarpType.DoNothing;
 
-            Alarm alarm = new Alarm(alarmTitle, desc, alarm_ut, time);
+            Alarm alarm = new Alarm(alarmTitle, desc, alarm_ut, time, warp: warp);
 
             if (queueButton == NewAlarmQueueType.Append)
                 alarmutils.AlarmAppendedToQueue(ref alarm);
             else if (queueButton == NewAlarmQueueType.Prepend)
                 alarmutils.AlarmPrependedToQueue(alarm);
 
-            alarm.CreateonGUI();
+            alarm.CreateonGUI(settingsPlan.KACEnable);
 
             Messages.ShowAndClear(2, Messages.DurationType.CLEVERCONSTPERLINE);
         }

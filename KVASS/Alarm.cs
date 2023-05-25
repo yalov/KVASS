@@ -27,7 +27,7 @@ namespace KVASSNS
             string id = "", WarpType warp = WarpType.DoNothing, AlarmType alarmType = AlarmType.AlarmClockApp)
         {
             Title = title;
-            Description = desc?.Replace("\n", "<br>");
+            Description = desc;
             UT = ut;
             Time = time;
             ID = id;
@@ -56,11 +56,9 @@ namespace KVASSNS
         /// <summary>
         /// Create Alarms on GUI and write ID into alarm
         /// </summary>
-        public void CreateonGUI()
+        public void CreateonGUI(bool onKAC)
         {
-            KVASSPlanSettings settings = HighLogic.CurrentGame.Parameters.CustomParams<KVASSPlanSettings>();
-
-            if (settings.KACEnable)
+            if (onKAC)
             {
                 if (KACWrapper.APIReady)
                 {
@@ -93,12 +91,12 @@ namespace KVASSNS
                 AlarmTypeRaw alarm = new AlarmTypeRaw();
                 alarm.title = Title;
                 alarm.ut = UT;
-                alarm.description = Description;
+                alarm.description = Description?.Replace("\n", "<br>");
                 alarm.timeEntry = Time;
 
                 //Log(String.Format("CreateonGUI ACA title:{0}, UT:{1:F0}, timeEntry:{2:F0}", alarm.title, alarm.ut, alarm.timeEntry));
 
-                if (settings.KillTimeWarp)
+                if (Warp == WarpType.KillWarp)
                     alarm.actions.warp = AlarmActions.WarpEnum.KillWarp;
                 else
                     alarm.actions.warp = AlarmActions.WarpEnum.DoNothing;
@@ -146,7 +144,16 @@ namespace KVASSNS
                 case AlarmType.KerbalAlarmClock:
                     var kac_alarm = KACUtils.GetAlarm(alarmTitle);
                     if (kac_alarm != null)
-                        alarm = new Alarm(kac_alarm.Name, kac_alarm.Notes, kac_alarm.AlarmTime, kac_alarm.Remaining, id: kac_alarm.ID);
+                    {
+                        Alarm.WarpType warp;
+                        if (kac_alarm.AlarmAction == KACWrapper.KACAPI.AlarmActionEnum.KillWarpOnly)
+                            warp = Alarm.WarpType.KillWarp;
+                        else
+                            warp = Alarm.WarpType.DoNothing;
+
+                        alarm = new Alarm(kac_alarm.Name, kac_alarm.Notes, kac_alarm.AlarmTime, kac_alarm.Remaining, id: kac_alarm.ID,
+                            warp: warp); 
+                    }
                     break;
 
                 case AlarmType.AlarmClockApp:
@@ -154,8 +161,16 @@ namespace KVASSNS
                     //Log("Alarm.GetAlarm " + aca_alarm.Id);
                     if (aca_alarm != null && aca_alarm is AlarmTypeRaw)
                     {
-                        alarm = new Alarm(aca_alarm.title, aca_alarm.description, aca_alarm.ut, (aca_alarm as AlarmTypeRaw).timeEntry, id: aca_alarm.Id.ToString());
+                        Alarm.WarpType warp;
+                        if (aca_alarm.actions.warp == AlarmActions.WarpEnum.KillWarp)
+                            warp = Alarm.WarpType.KillWarp;
+                        else
+                            warp = Alarm.WarpType.DoNothing;
+
+                        alarm = new Alarm(aca_alarm.title, aca_alarm.description, aca_alarm.ut, 
+                            (aca_alarm as AlarmTypeRaw).timeEntry, id: aca_alarm.Id.ToString(), warp: warp);
                         //Log("Alarm.GetAlarm " + alarm.ID);
+
                     }
                         break;
             }

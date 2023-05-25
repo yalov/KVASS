@@ -1,5 +1,8 @@
 ## ChangeLog:
 
+### Version 2.5.4
+* fix bug: checkbox killTimeWarp for KAC
+
 ### Version 2.5.3
 * add simulation message on Simulation launch in the editor
 
